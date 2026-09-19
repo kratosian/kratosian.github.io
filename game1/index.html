@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kratos 1v1 Fighting - Fullscreen Edition</title>
+  <title>Kratos 1v1 Fighting - Transparent Edition</title>
   <style>
     * {
       box-sizing: border-box;
@@ -175,17 +175,43 @@
 
     const gravity = 0.8;
 
-    const spriteSheet = new Image();
+    // TẠO CANVAS ẨN ĐỂ XÓA NỀN TRẮNG CỦA ẢNH
+    let processedCanvas = document.createElement('canvas');
+    let processedCtx = processedCanvas.getContext('2d');
     let imgLoaded = false;
-    spriteSheet.src = 'hero.jpg'; 
-    spriteSheet.onload = () => { imgLoaded = true; };
+
+    const rawImage = new Image();
+    rawImage.src = 'hero.jpg';
+    rawImage.onload = () => {
+      processedCanvas.width = rawImage.width;
+      processedCanvas.height = rawImage.height;
+      processedCtx.drawImage(rawImage, 0, 0);
+
+      // Đọc toàn bộ điểm ảnh để lọc màu trắng
+      const imgData = processedCtx.getImageData(0, 0, rawImage.width, rawImage.height);
+      const data = imgData.data;
+
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        
+        // Nếu pixel có màu trắng/gần trắng -> biến thành trong suốt
+        if (r > 200 && g > 200 && b > 200) {
+          data[i + 3] = 0; // Alpha = 0 (trong suốt)
+        }
+      }
+
+      processedCtx.putImageData(imgData, 0, 0);
+      imgLoaded = true;
+    };
 
     class Player {
       constructor({ x, facing, hpId, mpId, color, cropRect }) {
         this.x = x;
         this.y = 100;
-        this.width = 80;
-        this.height = 120;
+        this.width = 90;
+        this.height = 140;
         this.velocity = { x: 0, y: 0 };
         this.facing = facing;
         this.hp = 100;
@@ -193,7 +219,7 @@
         this.hpId = hpId;
         this.mpId = mpId;
         this.color = color;
-        this.cropRect = cropRect; // Tọa độ cắt ảnh [x%, y%, width%, height%]
+        this.cropRect = cropRect;
         this.isAttacking = false;
         this.attackBox = { x: 0, y: 0, width: 80, height: 50 };
       }
@@ -202,18 +228,17 @@
         if (imgLoaded) {
           ctx.save();
           
-          // Tính tọa độ pixel cắt từ tỷ lệ % bức ảnh
-          const sx = spriteSheet.width * this.cropRect.x;
-          const sy = spriteSheet.height * this.cropRect.y;
-          const sw = spriteSheet.width * this.cropRect.w;
-          const sh = spriteSheet.height * this.cropRect.h;
+          const sx = processedCanvas.width * this.cropRect.x;
+          const sy = processedCanvas.height * this.cropRect.y;
+          const sw = processedCanvas.width * this.cropRect.w;
+          const sh = processedCanvas.height * this.cropRect.h;
 
           if (this.facing === 'left') {
             ctx.translate(this.x + this.width, this.y);
             ctx.scale(-1, 1);
-            ctx.drawImage(spriteSheet, sx, sy, sw, sh, 0, 0, this.width, this.height);
+            ctx.drawImage(processedCanvas, sx, sy, sw, sh, 0, 0, this.width, this.height);
           } else {
-            ctx.drawImage(spriteSheet, sx, sy, sw, sh, this.x, this.y, this.width, this.height);
+            ctx.drawImage(processedCanvas, sx, sy, sw, sh, this.x, this.y, this.width, this.height);
           }
           ctx.restore();
         } else {
@@ -224,7 +249,7 @@
         if (this.isAttacking) {
           ctx.fillStyle = 'rgba(255, 230, 0, 0.6)';
           const boxX = this.facing === 'right' ? this.x + this.width : this.x - this.attackBox.width;
-          ctx.fillRect(boxX, this.y + 25, this.attackBox.width, this.attackBox.height);
+          ctx.fillRect(boxX, this.y + 35, this.attackBox.width, this.attackBox.height);
         }
       }
 
@@ -269,14 +294,13 @@
       }
     }
 
-    // Định nghĩa vị trí cắt cho Võ sĩ (P1) và Kiếm sĩ (P2) từ tấm ảnh sheet
     const player1 = new Player({ 
       x: canvas.width * 0.2, 
       facing: 'right', 
       hpId: 'p1-hp', 
       mpId: 'p1-mp', 
       color: '#ef4444',
-      cropRect: { x: 0.15, y: 0.22, w: 0.22, h: 0.26 } // Tọa độ vị trí Võ sĩ
+      cropRect: { x: 0.06, y: 0.23, w: 0.12, h: 0.18 } 
     });
 
     const player2 = new Player({ 
@@ -285,7 +309,7 @@
       hpId: 'p2-hp', 
       mpId: 'p2-mp', 
       color: '#3b82f6',
-      cropRect: { x: 0.15, y: 0.72, w: 0.22, h: 0.26 } // Tọa độ vị trí Kiếm sĩ
+      cropRect: { x: 0.05, y: 0.72, w: 0.12, h: 0.18 } 
     });
 
     const keys = { a: false, d: false, w: false, ArrowLeft: false, ArrowRight: false, ArrowUp: false };
@@ -304,7 +328,7 @@
       if (e.key === 'ArrowUp') keys.ArrowUp = true;
       if (e.key === '1') { if (player2.attack(80, 0)) checkHit(player2, player1, 10); }
       if (e.key === '2') { if (player2.attack(120, 30)) checkHit(player2, player1, 20); }
-      if (e.key === '3') { if (player2.attack(120, 50)) checkHit(player2, player1, 30); }
+      if (e.key === '3') { if (player2.attack(160, 50)) checkHit(player2, player1, 30); }
       if (e.key === '4') { if (player2.attack(220, 80)) checkHit(player2, player1, 50); }
     });
 
