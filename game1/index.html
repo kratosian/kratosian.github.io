@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>4 Heroes Fighting - Full Hiệu Ứng 4 Nhân Vật</title>
+<title>4 Heroes Fighting - Chỉ Giữ Lại Hiệu Ứng</title>
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -424,7 +424,6 @@ class Player {
             }
 
         } else if (this.heroType === "cungthu") {
-            // HIỆU ỨNG CUNG THỦ (Mũi Tên Năng Lượng & Vòng Tròn Ngắm Bắn)
             const arrowColor = this.isP1 ? "239, 68, 68" : "34, 197, 94";
             
             let archerGrad = ctx.createLinearGradient(
@@ -438,7 +437,6 @@ class Player {
             ctx.fillStyle = archerGrad;
             ctx.fillRect(rangeX, rangeY, width, height);
 
-            // Vẽ các đường tia năng lượng vạch ngang tầm bắn
             ctx.shadowColor = `rgb(${arrowColor})`; ctx.shadowBlur = 25;
             ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 4;
             ctx.beginPath();
@@ -450,7 +448,6 @@ class Player {
             ctx.lineTo(endArrowX, midY);
             ctx.stroke();
 
-            // Mũi tên phụ tỏa ra xung quanh
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(endArrowX + (isRight ? -15 : 15), midY - 12);
@@ -458,7 +455,6 @@ class Player {
             ctx.lineTo(endArrowX + (isRight ? -15 : 15), midY + 12);
             ctx.stroke();
 
-            // Vòng ngắm bắn mục tiêu ở đầu tầm bay
             ctx.strokeStyle = "#facc15"; ctx.lineWidth = 2.5;
             ctx.beginPath();
             ctx.arc(endArrowX, midY, 25, 0, Math.PI * 2);
@@ -475,15 +471,6 @@ class Player {
         ctx.ellipse(this.x + this.width / 2, canvas.height - groundHeight + 4, 40, 8, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
-
-        if (this.isAttacking) {
-            ctx.save();
-            ctx.shadowColor = this.heroType === 'vosi' ? "#38bdf8" : (this.heroType === 'cungthu' ? "#22c55e" : (this.isP1 ? "#ef4444" : "#a855f7")); 
-            ctx.shadowBlur = 25;
-            ctx.strokeStyle = "rgba(250, 204, 21, 0.7)"; ctx.lineWidth = 4;
-            ctx.strokeRect(this.x - 6, this.y - 6, this.width + 12, this.height + 12);
-            ctx.restore();
-        }
 
         if (this.hurtTimer > 0 && this.hurtTimer % 4 < 2) {
             ctx.save(); ctx.globalAlpha = 0.4; this.drawHeroPixel(); ctx.restore();
