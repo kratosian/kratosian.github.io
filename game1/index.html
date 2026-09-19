@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>4 Heroes Fighting - Fixed MP Logic</title>
+<title>4 Heroes Fighting - Cung Thủ Xé Gió</title>
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -120,10 +120,10 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
                 <div class="grid-chars" id="p1-grid">
                     <div class="char-btn" onclick="selectChar(1, 'vosi', this)">🥊 VÕ SĨ</div>
                     <div class="char-btn" onclick="selectChar(1, 'kiemsi', this)">⚔️ KIẾM SĨ</div>
-                    <div class="char-btn selected" onclick="selectChar(1, 'phapsu', this)">🪄 PHÁP SƯ</div>
-                    <div class="char-btn" onclick="selectChar(1, 'cungthu', this)">🏹 CUNG THỦ</div>
+                    <div class="char-btn" onclick="selectChar(1, 'phapsu', this)">🪄 PHÁP SƯ</div>
+                    <div class="char-btn selected" onclick="selectChar(1, 'cungthu', this)">🏹 CUNG THỦ</div>
                 </div>
-                <div class="preview-box" id="p1-preview">Đã chọn: PHÁP SƯ</div>
+                <div class="preview-box" id="p1-preview">Đã chọn: CUNG THỦ</div>
             </div>
 
             <div class="vs-badge">VS</div>
@@ -133,11 +133,11 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
                 <div class="p-title p2-title">PLAYER 2</div>
                 <div class="grid-chars" id="p2-grid">
                     <div class="char-btn" onclick="selectChar(2, 'vosi', this)">🥊 VÕ SĨ</div>
-                    <div class="char-btn selected" onclick="selectChar(2, 'kiemsi', this)">⚔️ KIẾM SĨ</div>
+                    <div class="char-btn" onclick="selectChar(2, 'kiemsi', this)">⚔️ KIẾM SĨ</div>
                     <div class="char-btn" onclick="selectChar(2, 'phapsu', this)">🪄 PHÁP SƯ</div>
-                    <div class="char-btn" onclick="selectChar(2, 'cungthu', this)">🏹 CUNG THỦ</div>
+                    <div class="char-btn selected" onclick="selectChar(2, 'cungthu', this)">🏹 CUNG THỦ</div>
                 </div>
-                <div class="preview-box" id="p2-preview">Đã chọn: KIẾM SĨ</div>
+                <div class="preview-box" id="p2-preview">Đã chọn: CUNG THỦ</div>
             </div>
         </div>
 
@@ -147,7 +147,7 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
     <!-- HUD THANH MÁU & MP -->
     <div class="ui-layer">
         <div class="status-group">
-            <div id="p1-title" class="player-name p1-color">P1: PHÁP SƯ</div>
+            <div id="p1-title" class="player-name p1-color">P1: CUNG THỦ</div>
             <div class="bar-container"><div id="p1-hp" class="health-bar"></div></div>
             <div class="bar-container mp-container"><div id="p1-mp" class="mana-bar"></div></div>
         </div>
@@ -155,7 +155,7 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
         <div style="color:#facc15; font-weight:900; font-size:28px;">VS</div>
 
         <div class="status-group">
-            <div id="p2-title" class="player-name p2-color">P2: KIẾM SĨ</div>
+            <div id="p2-title" class="player-name p2-color">P2: CUNG THỦ</div>
             <div class="bar-container"><div id="p2-hp" class="health-bar"></div></div>
             <div class="bar-container mp-container"><div id="p2-mp" class="mana-bar"></div></div>
         </div>
@@ -170,8 +170,8 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
     </div>
 
     <div class="controls-info">
-        <b>P1:</b> A/D Di chuyển · W Nhảy · U Đánh · I/O Chiêu<br>
-        <b>P2:</b> Mũi tên ←/→ Di chuyển · ↑ Nhảy · J/Numpad 1 Đánh · K/L/Numpad 2,3 Chiêu
+        <b>P1:</b> A/D Di chuyển · W Nhảy · U Bắn Thường · I/O Chiêu Wind<br>
+        <b>P2:</b> Mũi tên ←/→ Di chuyển · ↑ Nhảy · J/1 Bắn Thường · K/L/2,3 Chiêu Wind
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -191,8 +191,8 @@ let gameStarted = false;
 let gameOver = false;
 let msgTimeout = null;
 
-let selectedP1 = 'phapsu';
-let selectedP2 = 'kiemsi';
+let selectedP1 = 'cungthu';
+let selectedP2 = 'cungthu';
 
 const nameMap = { vosi: "VÕ SĨ", kiemsi: "KIẾM SĨ", phapsu: "PHÁP SƯ", cungthu: "CUNG THỦ" };
 
@@ -305,11 +305,13 @@ class Player {
             ctx.fillStyle = "#78350f"; ctx.fillRect(24 + armOffset, 22 + bodyY, 12, 3);
 
         } else if (this.heroType === "cungthu") {
-            ctx.fillStyle = "#fef08a"; ctx.fillRect(8, 2 + bodyY, 24, 12);
+            // TÓC & ÁO PHONG PHONG XÉ GIÓ
+            ctx.fillStyle = "#fef08a"; ctx.fillRect(6 - (this.isAttacking ? 4 : 0), 2 + bodyY, 26, 12);
             ctx.fillStyle = "#ffdbac"; ctx.fillRect(12, 8 + bodyY, 16, 10);
             ctx.fillRect(6, 10 + bodyY, 5, 3); ctx.fillRect(29, 10 + bodyY, 5, 3);
             ctx.fillStyle = "#15803d"; ctx.fillRect(10, 18 + bodyY, 20, 22);
-            ctx.fillStyle = "#78350f"; ctx.fillRect(24, 14 + bodyY, 4, 24);
+            // CÁNH CUNG TƯ THẾ GIƯƠNG
+            ctx.fillStyle = "#78350f"; ctx.fillRect(24 + (this.isAttacking ? 6 : 0), 10 + bodyY, 4, 28);
             ctx.fillStyle = "#166534"; ctx.fillRect(12 + legOffset, 48, 7, 14); ctx.fillRect(21 - legOffset, 48, 7, 14);
         }
 
@@ -327,110 +329,84 @@ class Player {
 
         ctx.save();
 
-        if (this.heroType === "kiemsi") {
-            // ===== HIỆU ỨNG VỆT CHÉM BÁN NGUYỆT =====
-            const color = this.isP1 ? "#ef4444" : "#3b82f6";
-            const centerX = isRight ? this.x + this.width / 2 : this.x + this.width / 2;
-            const centerY = this.y + this.height / 2;
+        if (this.heroType === "cungthu") {
+            // ==========================================
+            // HIỆU ỨNG XÉ GIÓ (WIND / AIR BURST EFFECT)
+            // ==========================================
+            let progress = (15 - this.attackTimer) / 15;
 
-            let progress = (20 - this.attackTimer) / 20;
+            // 1. VÒNG SÓNG XUNG KÍCH BẰNG GIÓ (WIND SHOCKWAVE RING) TẠI CÁNH CUNG
+            let bowX = isRight ? this.x + this.width : this.x;
+            let bowY = this.y + 40;
+            
+            ctx.strokeStyle = `rgba(224, 242, 254, ${1 - progress})`;
+            ctx.lineWidth = 4;
+            ctx.shadowColor = "#38bdf8";
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.ellipse(bowX, bowY, 12 + progress * 30, 25 + progress * 50, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // 2. MŨI TÊN XÉ GIÓ LAO VỚI TỐC ĐỘ CỰC CAO
+            let arrowX = isRight ? rangeX + progress * width : rangeX + (1 - progress) * width;
+            let arrowY = rangeY + height / 2;
+
+            // Vệt xé gió biến dạng không khí (Motion Blur Lines)
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 4; i++) {
+                let offsetY = (i - 1.5) * 8;
+                let lineLen = 40 + Math.random() * 30;
+                ctx.beginPath();
+                ctx.moveTo(arrowX - (isRight ? lineLen : -lineLen), arrowY + offsetY);
+                ctx.lineTo(arrowX, arrowY + offsetY);
+                ctx.stroke();
+            }
+
+            // Thân & Đầu Mũi Tên Phát Sáng
+            ctx.strokeStyle = "#38bdf8";
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(arrowX - (isRight ? 35 : -35), arrowY);
+            ctx.lineTo(arrowX, arrowY);
+            ctx.stroke();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.arc(arrowX, arrowY, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+        } else if (this.heroType === "kiemsi") {
+            const color = this.isP1 ? "#ef4444" : "#3b82f6";
+            const centerX = this.x + this.width / 2;
+            const centerY = this.y + this.height / 2;
+            let progress = (18 - this.attackTimer) / 18;
             let radius = width * 1.1;
 
             let startAngle = isRight ? -Math.PI / 2.5 : Math.PI + Math.PI / 2.5;
             let endAngle = isRight ? startAngle + (Math.PI * 0.95 * progress) : startAngle - (Math.PI * 0.95 * progress);
 
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 22;
-            ctx.globalAlpha = 0.25 * (1 - progress);
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, startAngle, endAngle, !isRight);
-            ctx.stroke();
+            ctx.strokeStyle = color; ctx.lineWidth = 22; ctx.globalAlpha = 0.25 * (1 - progress);
+            ctx.beginPath(); ctx.arc(centerX, centerY, radius, startAngle, endAngle, !isRight); ctx.stroke();
 
-            ctx.shadowColor = color;
-            ctx.shadowBlur = 25;
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 7;
-            ctx.globalAlpha = 1;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, startAngle, endAngle, !isRight);
-            ctx.stroke();
-
-            let tipX = centerX + Math.cos(endAngle) * radius;
-            let tipY = centerY + Math.sin(endAngle) * radius;
-            ctx.fillStyle = "#ffffff";
-            ctx.shadowColor = "#ffffff";
-            ctx.shadowBlur = 15;
-            ctx.beginPath();
-            ctx.arc(tipX, tipY, 7, 0, Math.PI * 2);
-            ctx.fill();
-
-            for (let i = 0; i < 4; i++) {
-                let sparkAngle = startAngle + (endAngle - startAngle) * Math.random();
-                let sparkDist = radius + (Math.random() * 20 - 10);
-                let sx = centerX + Math.cos(sparkAngle) * sparkDist;
-                let sy = centerY + Math.sin(sparkAngle) * sparkDist;
-                ctx.fillStyle = color;
-                ctx.fillRect(sx, sy, 6, 2);
-            }
+            ctx.shadowColor = color; ctx.shadowBlur = 25; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 7; ctx.globalAlpha = 1;
+            ctx.beginPath(); ctx.arc(centerX, centerY, radius, startAngle, endAngle, !isRight); ctx.stroke();
 
         } else if (this.heroType === "phapsu") {
-            // ===== HIỆU ỨNG BÃI NĂNG LƯỢNG MA THUẬT (KHÔNG KHUNG HITBOX) =====
             const mainColor = this.isP1 ? "239, 68, 68" : "168, 85, 247";
-            const auraColor = this.isP1 ? "#fca5a5" : "#e9d5ff";
-
-            let progress = (25 - this.attackTimer) / 25;
-            let shockwaveRadius = progress * width;
-
-            // 1. Sóng bão năng lượng cuồn cuộn bung ra từ tâm
-            ctx.shadowColor = `rgba(${mainColor}, 1)`;
-            ctx.shadowBlur = 30;
-
-            ctx.strokeStyle = `rgba(${mainColor}, ${1 - progress})`;
-            ctx.lineWidth = 8;
-            ctx.beginPath();
-            ctx.arc(isRight ? rangeX : rangeX + width, rangeY + height / 2, shockwaveRadius, -Math.PI / 2, Math.PI / 2);
-            ctx.stroke();
-
-            // 2. Vùng lõi phát sáng mềm mại
+            let progress = (15 - this.attackTimer) / 15;
             let energyGrad = ctx.createRadialGradient(
                 isRight ? rangeX : rangeX + width, rangeY + height / 2, 10,
                 isRight ? rangeX + width / 2 : rangeX + width / 2, rangeY + height / 2, width
             );
             energyGrad.addColorStop(0, `rgba(${mainColor}, 0.7)`);
-            energyGrad.addColorStop(0.5, `rgba(${mainColor}, 0.3)`);
             energyGrad.addColorStop(1, `rgba(${mainColor}, 0.0)`);
-
-            ctx.fillStyle = energyGrad;
-            ctx.fillRect(rangeX, rangeY, width, height);
-
-            // 3. Hạt năng lượng ma thuật bắn tung tóe
-            for (let i = 0; i < 12; i++) {
-                let px = rangeX + Math.random() * width;
-                let py = rangeY + Math.random() * height;
-                ctx.fillStyle = auraColor;
-                ctx.beginPath();
-                ctx.arc(px, py, Math.random() * 5 + 2, 0, Math.PI * 2);
-                ctx.fill();
-            }
+            ctx.fillStyle = energyGrad; ctx.fillRect(rangeX, rangeY, width, height);
 
         } else {
-            // ===== HIỆU ỨNG VÕ SĨ / CUNG THỦ =====
+            // VÕ SĨ
             const primaryColor = this.isP1 ? "239, 68, 68" : "59, 130, 246";
-            ctx.shadowColor = `rgba(${primaryColor}, 0.8)`;
-            ctx.shadowBlur = 15;
-
-            let grad = ctx.createLinearGradient(
-                isRight ? rangeX : rangeX + width, rangeY,
-                isRight ? rangeX + width : rangeX, rangeY
-            );
-            grad.addColorStop(0, `rgba(${primaryColor}, 0.4)`);
-            grad.addColorStop(1, `rgba(${primaryColor}, 0.0)`);
-
-            ctx.fillStyle = grad;
-            ctx.fillRect(rangeX, rangeY, width, height);
-            ctx.strokeStyle = `rgba(${primaryColor}, 0.8)`;
-            ctx.lineWidth = 2;
-            ctx.strokeRect(rangeX, rangeY, width, height);
+            ctx.fillStyle = `rgba(${primaryColor}, 0.4)`; ctx.fillRect(rangeX, rangeY, width, height);
         }
 
         ctx.restore();
@@ -484,9 +460,8 @@ class Player {
     attack() {
         if (this.isAttacking || this.hp <= 0) return false;
         this.isAttacking = true; this.hitDone = false;
-        this.attackTimer = this.heroType === "kiemsi" ? 18 : 15;
-        this.attackBox.width = this.heroType === "phapsu" ? 140 : (this.heroType === "kiemsi" ? 120 : 90);
-        // Bỏ dòng cộng MP tại đây, chuyển sang checkHit
+        this.attackTimer = 15;
+        this.attackBox.width = this.heroType === "cungthu" ? 220 : 90;
         this.updateUI();
         return true;
     }
@@ -495,7 +470,7 @@ class Player {
         if (this.isAttacking || this.hp <= 0) return false;
         if (this.mp < cost) { showMessage("CHƯA ĐỦ MP!", "#a855f7"); return false; }
         this.mp -= cost; this.updateUI();
-        this.isAttacking = true; this.hitDone = false; this.attackTimer = 22;
+        this.isAttacking = true; this.hitDone = false; this.attackTimer = 20;
         this.attackBox.width = range;
         showMessage(text, color);
         return true;
@@ -503,7 +478,7 @@ class Player {
 
     takeDamage(amount) {
         this.hp = Math.max(0, this.hp - amount);
-        this.mp = Math.min(100, this.mp + 12); // Bị đánh vẫn được cộng MP
+        this.mp = Math.min(100, this.mp + 12);
         this.hurtTimer = 16;
         this.updateUI();
         this.velocity.x = this.facing === "right" ? -6 : 6;
@@ -515,8 +490,8 @@ class Player {
     }
 }
 
-let player1 = new Player({ x: canvas.width * 0.18, facing: "right", hpId: "p1-hp", mpId: "p1-mp", heroType: "phapsu", isP1: true });
-let player2 = new Player({ x: canvas.width * 0.72, facing: "left", hpId: "p2-hp", mpId: "p2-mp", heroType: "kiemsi", isP1: false });
+let player1 = new Player({ x: canvas.width * 0.18, facing: "right", hpId: "p1-hp", mpId: "p1-mp", heroType: "cungthu", isP1: true });
+let player2 = new Player({ x: canvas.width * 0.72, facing: "left", hpId: "p2-hp", mpId: "p2-mp", heroType: "cungthu", isP1: false });
 
 const keys = { a: false, d: false, ArrowLeft: false, ArrowRight: false };
 
@@ -528,8 +503,6 @@ function checkHit(attacker, defender, damage) {
         attacker.y < defender.y + defender.height && attacker.y + attacker.height > defender.y) {
         
         attacker.hitDone = true;
-        
-        // CHỈ CỘNG 10 MP KHI ĐÁNH THƯỜNG TRÚNG ĐỊCH
         attacker.mp = Math.min(100, attacker.mp + 10);
         attacker.updateUI();
 
@@ -557,16 +530,16 @@ window.addEventListener("keydown", e => {
     if (e.key === "d" || e.key === "D") keys.d = true;
     if ((e.key === "w" || e.key === "W") && player1.y >= canvas.height - groundHeight - player1.height) player1.velocity.y = -16;
     if (e.key === "u" || e.key === "U") { if (player1.attack()) setTimeout(() => checkHit(player1, player2, 10), 100); }
-    if (e.key === "i" || e.key === "I") { if (player1.skill(30, 220, "🔥 TRẢM NĂNG LƯỢNG!", "#ef4444")) setTimeout(() => checkHit(player1, player2, 22), 150); }
-    if (e.key === "o" || e.key === "O") { if (player1.skill(50, 320, "⚡ BÃO MA THUẬT!", "#a855f7")) setTimeout(() => checkHit(player1, player2, 35), 180); }
+    if (e.key === "i" || e.key === "I") { if (player1.skill(30, 280, "🏹 PHONG TÊN TRẢM!", "#38bdf8")) setTimeout(() => checkHit(player1, player2, 22), 150); }
+    if (e.key === "o" || e.key === "O") { if (player1.skill(50, 360, "🌪️ BÃO GIÓ LỐC!", "#0284c7")) setTimeout(() => checkHit(player1, player2, 35), 180); }
 
     // P2 CONTROLS
     if (e.key === "ArrowLeft") keys.ArrowLeft = true;
     if (e.key === "ArrowRight") keys.ArrowRight = true;
     if (e.key === "ArrowUp" && player2.y >= canvas.height - groundHeight - player2.height) player2.velocity.y = -16;
     if (e.key === "j" || e.key === "J" || e.key === "1") { if (player2.attack()) setTimeout(() => checkHit(player2, player1, 10), 100); }
-    if (e.key === "k" || e.key === "K" || e.key === "2") { if (player2.skill(30, 190, "⚔️ PHONG TRẢM!", "#3b82f6")) setTimeout(() => checkHit(player2, player1, 22), 150); }
-    if (e.key === "l" || e.key === "L" || e.key === "3") { if (player2.skill(50, 270, "💥 LẠC DIỆP TRẢM!", "#a855f7")) setTimeout(() => checkHit(player2, player1, 35), 180); }
+    if (e.key === "k" || e.key === "K" || e.key === "2") { if (player2.skill(30, 280, "🏹 PHONG TÊN TRẢM!", "#38bdf8")) setTimeout(() => checkHit(player2, player1, 22), 150); }
+    if (e.key === "l" || e.key === "L" || e.key === "3") { if (player2.skill(50, 360, "🌪️ BÃO GIÓ LỐC!", "#0284c7")) setTimeout(() => checkHit(player2, player1, 35), 180); }
 });
 
 window.addEventListener("keyup", e => {
