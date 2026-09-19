@@ -32,7 +32,7 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
 
 .input-custom {
     width: 100%; padding: 12px; background: #1e293b; border: 2px solid #475569; border-radius: 8px;
-    color: white; font-size: 16px; text-align: center; margin-bottom: 10px; font-weight: bold;
+    color: white; font-size: 18px; text-align: center; margin-bottom: 10px; font-weight: bold; letter-spacing: 2px;
 }
 .input-custom:focus { border-color: #facc15; outline: none; }
 
@@ -43,10 +43,18 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
 }
 .btn-custom:hover { transform: scale(1.02); box-shadow: 0 0 25px rgba(250,204,21,0.8); }
 
-.room-id-display {
-    background: #0f172a; border: 2px dashed #facc15; color: #facc15; padding: 10px;
-    border-radius: 8px; font-size: 18px; font-weight: bold; margin-bottom: 10px; word-break: break-all;
+.room-id-wrapper {
+    display: flex; gap: 8px; margin-bottom: 10px;
 }
+.room-id-display {
+    flex: 1; background: #0f172a; border: 2px dashed #facc15; color: #facc15; padding: 10px;
+    border-radius: 8px; font-size: 22px; font-weight: bold; letter-spacing: 3px; display: flex; align-items: center; justify-content: center;
+}
+.btn-copy {
+    padding: 0 16px; background: #334155; border: 2px solid #475569; color: white; font-weight: bold;
+    border-radius: 8px; cursor: pointer; transition: all 0.2s;
+}
+.btn-copy:hover { background: #475569; border-color: #facc15; color: #facc15; }
 
 #char-select-screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: space-between; padding: 30px; position: absolute; top: 0; left: 0; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); z-index: 90; }
 .select-title { color: #facc15; font-size: 34px; font-weight: 900; text-transform: uppercase; }
@@ -94,20 +102,23 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
                 <button class="btn-custom" onclick="createRoom()">TẠO PHÒNG MỚI</button>
                 <div id="room-info-area" style="margin-top: 15px; display: none;">
                     <div style="font-size: 13px; color: #94a3b8; margin-bottom: 5px;">Mã phòng của bạn (Gửi mã này cho bạn):</div>
-                    <div class="room-id-display" id="my-room-code">Đang tạo...</div>
+                    <div class="room-id-wrapper">
+                        <div class="room-id-display" id="my-room-code">-----</div>
+                        <button class="btn-copy" onclick="copyRoomCode()">📋 Sao chép</button>
+                    </div>
                     <div id="connection-status" style="color: #38bdf8; font-size: 14px; font-weight: bold;">Đang chờ người chơi khác vào...</div>
                 </div>
             </div>
 
             <div class="lobby-section">
                 <div style="font-size: 14px; color: #cbd5e1; margin-bottom: 10px; font-weight: bold;">Hoặc tham gia phòng bạn bè:</div>
-                <input type="text" id="join-code-input" class="input-custom" placeholder="Nhập mã phòng...">
+                <input type="text" id="join-code-input" class="input-custom" placeholder="Nhập 5 số..." maxlength="5">
                 <button class="btn-custom" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white;" onclick="joinRoom()">VÀO PHÒNG</button>
             </div>
         </div>
     </div>
 
-    <!-- MÀN HÌNH CHỌN NHÂN VẬT (HIỆN SAU KHI KẾT NỐI THÀNH CÔNG) -->
+    <!-- MÀN HÌNH CHỌN NHÂN VẬT -->
     <div id="char-select-screen">
         <div class="select-title">CHỌN NHÂN VẬT</div>
         <div class="select-body">
@@ -172,7 +183,6 @@ let gameStarted = false;
 let gameOver = false;
 let msgTimeout = null;
 
-// Biến PeerJS mạng P2P
 let peer = null;
 let conn = null;
 let isHost = false;
@@ -181,13 +191,28 @@ let enemyHeroType = 'kiemsi';
 
 const nameMap = { vosi: "VÕ SĨ", kiemsi: "KIẾM SĨ", phapsu: "PHÁP SƯ", cungthu: "CUNG THỦ" };
 
-// --- HỆ THỐNG KẾT NỐI PEERJS ---
+// Tạo mã phòng ngẫu nhiên gồm đúng 5 chữ số
+function generateRandomRoomId() {
+    return Math.floor(10000 + Math.random() * 90000).toString();
+}
+
 function createRoom() {
-    peer = new Peer(); // Tạo ID ngẫu nhiên trên cloud PeerJS miễn phí
+    const customId = generateRandomRoomId();
+    peer = new Peer(customId); // Dùng mã 5 số làm Peer ID
+
     peer.on('open', (id) => {
         isHost = true;
         document.getElementById("room-info-area").style.display = "block";
         document.getElementById("my-room-code").innerText = id;
+    });
+
+    peer.on('error', (err) => {
+        // Nếu trùng mã ngẫu nhiên hiếm hoi thì bấm lại tạo phòng khác
+        if (err.type === 'unavailable-id') {
+            createRoom();
+        } else {
+            alert("Lỗi tạo phòng: " + err.type);
+        }
     });
 
     peer.on('connection', (connection) => {
@@ -201,21 +226,37 @@ function createRoom() {
     });
 }
 
+function copyRoomCode() {
+    const code = document.getElementById("my-room-code").innerText;
+    navigator.clipboard.writeText(code).then(() => {
+        const btn = document.querySelector(".btn-copy");
+        btn.innerText = "✅ Đã chép!";
+        setTimeout(() => btn.innerText = "📋 Sao chép", 1500);
+    });
+}
+
 function joinRoom() {
     const code = document.getElementById("join-code-input").value.trim();
-    if (!code) { alert("Vui lòng nhập mã phòng!"); return; }
+    if (code.length !== 5) { alert("Mã phòng phải gồm đúng 5 chữ số!"); return; }
 
     peer = new Peer();
     peer.on('open', () => {
         isHost = false;
         conn = peer.connect(code);
         setupConnection();
-        document.getElementById("online-overlay").style.display = "none";
-        document.getElementById("char-select-screen").style.display = "flex";
-        document.getElementById("my-card-title").innerText = "BẠN (P2)";
-        document.getElementById("my-card-title").style.color = "#60a5fa";
-        document.getElementById("enemy-card-title").innerText = "ĐỐI THỦ (P1)";
-        document.getElementById("enemy-card-title").style.color = "#ef4444";
+        
+        conn.on('open', () => {
+            document.getElementById("online-overlay").style.display = "none";
+            document.getElementById("char-select-screen").style.display = "flex";
+            document.getElementById("my-card-title").innerText = "BẠN (P2)";
+            document.getElementById("my-card-title").style.color = "#60a5fa";
+            document.getElementById("enemy-card-title").innerText = "ĐỐI THỦ (P1)";
+            document.getElementById("enemy-card-title").style.color = "#ef4444";
+        });
+
+        conn.on('error', () => {
+            alert("Không tìm thấy phòng với mã này!");
+        });
     });
 }
 
@@ -228,7 +269,6 @@ function setupConnection() {
             enemyHeroType = data.hero;
             startBattleGame();
         } else if (data.type === 'input') {
-            // Nhận trạng thái phím/hành động từ đối thủ
             if (isHost) {
                 player2.x = data.x; player2.y = data.y; player2.facing = data.facing;
                 if (data.action === 'attack') { player2.attack(); setTimeout(() => checkHit(player2, player1, 10), 100); }
@@ -279,7 +319,7 @@ function showMessage(text, color) {
     msgTimeout = setTimeout(() => el.style.opacity = "0", 800);
 }
 
-// --- LOGIC NHÂN VẬT & GAME ---
+// --- CLASS NHÂN VẬT & LOGIC GAME ---
 class Player {
     constructor({ x, facing, hpId, mpId, heroType, isP1 }) {
         this.x = x; this.y = 100; this.width = 100; this.height = 150;
@@ -348,13 +388,11 @@ class Player {
         const width = this.attackBox.width; const height = this.attackBox.height;
 
         ctx.save();
-        if (this.heroType === "vosi" || this.heroType === "kiemsi" || this.heroType === "phapsu" || this.heroType === "cungthu") {
-            let grad = ctx.createRadialGradient(rangeX + width/2, rangeY + height/2, 5, rangeX + width/2, rangeY + height/2, width);
-            grad.addColorStop(0, "rgba(250, 204, 21, 0.8)");
-            grad.addColorStop(1, "rgba(239, 68, 68, 0)");
-            ctx.fillStyle = grad;
-            ctx.fillRect(rangeX, rangeY, width, height);
-        }
+        let grad = ctx.createRadialGradient(rangeX + width/2, rangeY + height/2, 5, rangeX + width/2, rangeY + height/2, width);
+        grad.addColorStop(0, "rgba(250, 204, 21, 0.8)");
+        grad.addColorStop(1, "rgba(239, 68, 68, 0)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(rangeX, rangeY, width, height);
         ctx.restore();
     }
 
@@ -425,7 +463,6 @@ class Player {
     }
 }
 
-// Khởi tạo 2 người chơi (P1 và P2)
 let player1 = new Player({ x: canvas.width * 0.18, facing: "right", hpId: "p1-hp", mpId: "p1-mp", heroType: "vosi", isP1: true });
 let player2 = new Player({ x: canvas.width * 0.72, facing: "left", hpId: "p2-hp", mpId: "p2-mp", heroType: "kiemsi", isP1: false });
 
@@ -449,7 +486,6 @@ function checkHit(attacker, defender, damage) {
     }
 }
 
-// Xử lý phím bấm điều khiển
 window.addEventListener("keydown", e => {
     if (!gameStarted || gameOver) return;
 
@@ -483,7 +519,6 @@ window.addEventListener("keydown", e => {
         }
     }
 
-    // Gửi hành động qua mạng cho đối thủ
     if (conn && conn.open) {
         conn.send({
             type: 'input',
@@ -513,7 +548,6 @@ function animate() {
         if (keys.a) myPlayer.facing = "left"; 
         else if (keys.d) myPlayer.facing = "right";
 
-        // Gửi tọa độ di chuyển liên tục
         if (conn && conn.open && (keys.a || keys.d)) {
             conn.send({ type: 'input', x: myPlayer.x, y: myPlayer.y, facing: myPlayer.facing, action: null });
         }
