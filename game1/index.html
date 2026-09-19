@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>4 Heroes Fighting - Special FX Edition</title>
+<title>4 Heroes Fighting - Clean FX Edition</title>
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -316,7 +316,6 @@ class Player {
         ctx.restore();
     }
 
-    // --- QUẢN LÝ HIỆU ỨNG ĐÒN ĐÁNH CHO TỪNG CLASS ---
     drawAttackRange() {
         if (!this.isAttacking) return;
 
@@ -329,7 +328,7 @@ class Player {
         ctx.save();
 
         if (this.heroType === "kiemsi") {
-            // ===== HIỆU ỨNG VỆT CHÉM BÁN NGUYỆT (SWORD ARC SLASH) =====
+            // ===== HIỆU ỨNG VỆT CHÉM BÁN NGUYỆT =====
             const color = this.isP1 ? "#ef4444" : "#3b82f6";
             const centerX = isRight ? this.x + this.width / 2 : this.x + this.width / 2;
             const centerY = this.y + this.height / 2;
@@ -337,11 +336,9 @@ class Player {
             let progress = (20 - this.attackTimer) / 20;
             let radius = width * 1.1;
 
-            // Xác định góc chém theo hướng quay mặt
             let startAngle = isRight ? -Math.PI / 2.5 : Math.PI + Math.PI / 2.5;
             let endAngle = isRight ? startAngle + (Math.PI * 0.95 * progress) : startAngle - (Math.PI * 0.95 * progress);
 
-            // 1. Quầng sáng dư ảnh của đường chém
             ctx.strokeStyle = color;
             ctx.lineWidth = 22;
             ctx.globalAlpha = 0.25 * (1 - progress);
@@ -349,7 +346,6 @@ class Player {
             ctx.arc(centerX, centerY, radius, startAngle, endAngle, !isRight);
             ctx.stroke();
 
-            // 2. Vệt chém chính sắc bén phát sáng trắng-xanh/đỏ
             ctx.shadowColor = color;
             ctx.shadowBlur = 25;
             ctx.strokeStyle = "#ffffff";
@@ -359,7 +355,6 @@ class Player {
             ctx.arc(centerX, centerY, radius, startAngle, endAngle, !isRight);
             ctx.stroke();
 
-            // 3. Điểm nổ tia lửa ở mũi kiếm khi xé không trung
             let tipX = centerX + Math.cos(endAngle) * radius;
             let tipY = centerY + Math.sin(endAngle) * radius;
             ctx.fillStyle = "#ffffff";
@@ -369,7 +364,6 @@ class Player {
             ctx.arc(tipX, tipY, 7, 0, Math.PI * 2);
             ctx.fill();
 
-            // 4. Vệt xé gió li ti phụ
             for (let i = 0; i < 4; i++) {
                 let sparkAngle = startAngle + (endAngle - startAngle) * Math.random();
                 let sparkDist = radius + (Math.random() * 20 - 10);
@@ -380,13 +374,14 @@ class Player {
             }
 
         } else if (this.heroType === "phapsu") {
-            // ===== HIỆU ỨNG BÃI NĂNG LƯỢNG MA THUẬT (MAGE ENERGY STORM) =====
+            // ===== HIỆU ỨNG BÃI NĂNG LƯỢNG MA THUẬT (KHÔNG KHUNG HITBOX) =====
             const mainColor = this.isP1 ? "239, 68, 68" : "168, 85, 247";
             const auraColor = this.isP1 ? "#fca5a5" : "#e9d5ff";
 
             let progress = (25 - this.attackTimer) / 25;
             let shockwaveRadius = progress * width;
 
+            // 1. Sóng bão năng lượng cuồn cuộn bung ra từ tâm
             ctx.shadowColor = `rgba(${mainColor}, 1)`;
             ctx.shadowBlur = 30;
 
@@ -396,6 +391,7 @@ class Player {
             ctx.arc(isRight ? rangeX : rangeX + width, rangeY + height / 2, shockwaveRadius, -Math.PI / 2, Math.PI / 2);
             ctx.stroke();
 
+            // 2. Vùng lõi phát sáng mềm mại
             let energyGrad = ctx.createRadialGradient(
                 isRight ? rangeX : rangeX + width, rangeY + height / 2, 10,
                 isRight ? rangeX + width / 2 : rangeX + width / 2, rangeY + height / 2, width
@@ -407,7 +403,8 @@ class Player {
             ctx.fillStyle = energyGrad;
             ctx.fillRect(rangeX, rangeY, width, height);
 
-            for (let i = 0; i < 10; i++) {
+            // 3. Hạt năng lượng ma thuật bắn tung tóe
+            for (let i = 0; i < 12; i++) {
                 let px = rangeX + Math.random() * width;
                 let py = rangeY + Math.random() * height;
                 ctx.fillStyle = auraColor;
@@ -417,7 +414,7 @@ class Player {
             }
 
         } else {
-            // ===== HIỆU ỨNG HITBOX CƠ BẢN CHO VÕ SĨ / CUNG THỦ =====
+            // ===== HIỆU ỨNG VÕ SĨ / CUNG THỦ =====
             const primaryColor = this.isP1 ? "239, 68, 68" : "59, 130, 246";
             ctx.shadowColor = `rgba(${primaryColor}, 0.8)`;
             ctx.shadowBlur = 15;
