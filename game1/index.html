@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>4 Heroes Fighting - Character Selection</title>
+<title>4 Heroes Fighting - Character Selection & Attack Range</title>
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0f19; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0f19; font-family: system-ui, -apple-system, sans-serif; user-select: none; }
 .game-container { position: relative; width: 100vw; height: 100vh; }
 canvas { display: block; width: 100%; height: 100%; background: linear-gradient(to bottom, #111827 0%, #172554 55%, #0f172a 100%); }
 
-/* GIAO DIỆN CHỌN NHÂN VẬT */
+/* --- MÀN HÌNH CHỌN NHÂN VẬT --- */
 #char-select-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
@@ -20,16 +20,16 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
 }
 
 .select-title {
-    color: #facc15; font-size: 36px; font-weight: 900; letter-spacing: 2px;
+    color: #facc15; font-size: 34px; font-weight: 900; letter-spacing: 2px;
     text-shadow: 0 0 15px rgba(250,204,21,0.5); text-transform: uppercase;
 }
 
 .select-body {
-    display: flex; width: 100%; max-width: 1100px; justify-content: space-between; align-items: center; margin: auto 0;
+    display: flex; width: 100%; max-width: 1000px; justify-content: space-between; align-items: center; margin: auto 0;
 }
 
 .player-select-card {
-    width: 45%; background: rgba(15, 23, 42, 0.85); border: 2px solid #334155;
+    width: 44%; background: rgba(15, 23, 42, 0.85); border: 2px solid #334155;
     border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     display: flex; flex-direction: column; align-items: center;
 }
@@ -37,13 +37,11 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
 .p1-card { border-color: #ef4444; }
 .p2-card { border-color: #3b82f6; }
 
-.p-title { font-size: 24px; font-weight: 900; margin-bottom: 15px; }
+.p-title { font-size: 22px; font-weight: 900; margin-bottom: 15px; }
 .p1-title { color: #ef4444; }
 .p2-title { color: #60a5fa; }
 
-.grid-chars {
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%;
-}
+.grid-chars { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; }
 
 .char-btn {
     background: #1e293b; border: 2px solid #475569; border-radius: 10px;
@@ -55,23 +53,17 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
 .p1-card .char-btn.selected { background: #991b1b; border-color: #ef4444; box-shadow: 0 0 12px rgba(239, 68, 68, 0.6); }
 .p2-card .char-btn.selected { background: #1e3a8a; border-color: #3b82f6; box-shadow: 0 0 12px rgba(59, 130, 246, 0.6); }
 
-.preview-box {
-    margin-top: 15px; font-size: 16px; font-weight: bold; color: #cbd5e1;
-}
-
-.vs-badge {
-    font-size: 40px; font-weight: 900; color: #facc15; text-shadow: 0 0 20px rgba(250,204,21,0.8);
-}
+.preview-box { margin-top: 15px; font-size: 15px; font-weight: bold; color: #cbd5e1; }
+.vs-badge { font-size: 36px; font-weight: 900; color: #facc15; text-shadow: 0 0 20px rgba(250,204,21,0.8); }
 
 #start-btn {
-    padding: 14px 45px; font-size: 20px; font-weight: 900; color: #0f172a;
+    padding: 12px 40px; font-size: 18px; font-weight: 900; color: #0f172a;
     background: linear-gradient(135deg, #facc15, #f59e0b); border: none; border-radius: 30px;
     cursor: pointer; box-shadow: 0 0 20px rgba(250,204,21,0.4); transition: all 0.2s;
 }
+#start-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(250,204,21,0.8); }
 
-#start-btn:hover { transform: scale(1.08); box-shadow: 0 0 30px rgba(250,204,21,0.8); }
-
-/* GIAO DIỆN TRONG GAME */
+/* --- GIAO DIỆN TRONG GAME --- */
 .ui-layer {
     position: absolute; top: 15px; left: 25px; right: 25px;
     display: flex; justify-content: space-between; align-items: flex-start; z-index: 10; pointer-events: none;
@@ -105,7 +97,7 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
     border: 2px solid #facc15; border-radius: 15px; display: none; z-index: 50;
 }
 #winner-text { color: #facc15; font-size: 32px; }
-.btn-ui { margin-top: 15px; padding: 10px 20px; border: none; border-radius: 8px; background: #facc15; font-weight: bold; cursor: pointer; margin-x: 5px; }
+.btn-ui { margin: 15px 5px 0 5px; padding: 10px 20px; border: none; border-radius: 8px; background: #facc15; font-weight: bold; cursor: pointer; }
 
 #skill-message {
     position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%);
@@ -117,7 +109,7 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
 <body>
 <div class="game-container">
 
-    <!-- BẢNG CHỌN NHÂN VẬT (HIỆN KHI VÀO GAME) -->
+    <!-- BẢNG CHỌN NHÂN VẬT -->
     <div id="char-select-overlay">
         <div class="select-title">CHỌN NHÂN VẬT CỦA BẠN</div>
         
@@ -126,10 +118,10 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
             <div class="player-select-card p1-card">
                 <div class="p-title p1-title">PLAYER 1</div>
                 <div class="grid-chars" id="p1-grid">
-                    <div class="char-btn selected" onclick="selectChar(1, 'vosi')">🥊 VÕ SĨ</div>
-                    <div class="char-btn" onclick="selectChar(1, 'kiemsi')">⚔️ KIẾM SĨ</div>
-                    <div class="char-btn" onclick="selectChar(1, 'phapsu')">🪄 PHÁP SƯ</div>
-                    <div class="char-btn" onclick="selectChar(1, 'cungthu')">🏹 CUNG THỦ</div>
+                    <div class="char-btn selected" onclick="selectChar(1, 'vosi', this)">🥊 VÕ SĨ</div>
+                    <div class="char-btn" onclick="selectChar(1, 'kiemsi', this)">⚔️ KIẾM SĨ</div>
+                    <div class="char-btn" onclick="selectChar(1, 'phapsu', this)">🪄 PHÁP SƯ</div>
+                    <div class="char-btn" onclick="selectChar(1, 'cungthu', this)">🏹 CUNG THỦ</div>
                 </div>
                 <div class="preview-box" id="p1-preview">Đã chọn: VÕ SĨ</div>
             </div>
@@ -140,10 +132,10 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
             <div class="player-select-card p2-card">
                 <div class="p-title p2-title">PLAYER 2</div>
                 <div class="grid-chars" id="p2-grid">
-                    <div class="char-btn" onclick="selectChar(2, 'vosi')">🥊 VÕ SĨ</div>
-                    <div class="char-btn selected" onclick="selectChar(2, 'kiemsi')">⚔️ KIẾM SĨ</div>
-                    <div class="char-btn" onclick="selectChar(2, 'phapsu')">🪄 PHÁP SƯ</div>
-                    <div class="char-btn" onclick="selectChar(2, 'cungthu')">🏹 CUNG THỦ</div>
+                    <div class="char-btn" onclick="selectChar(2, 'vosi', this)">🥊 VÕ SĨ</div>
+                    <div class="char-btn selected" onclick="selectChar(2, 'kiemsi', this)">⚔️ KIẾM SĨ</div>
+                    <div class="char-btn" onclick="selectChar(2, 'phapsu', this)">🪄 PHÁP SƯ</div>
+                    <div class="char-btn" onclick="selectChar(2, 'cungthu', this)">🏹 CUNG THỦ</div>
                 </div>
                 <div class="preview-box" id="p2-preview">Đã chọn: KIẾM SĨ</div>
             </div>
@@ -204,19 +196,17 @@ let selectedP2 = 'kiemsi';
 
 const nameMap = { vosi: "VÕ SĨ", kiemsi: "KIẾM SĨ", phapsu: "PHÁP SƯ", cungthu: "CUNG THỦ" };
 
-function selectChar(player, type) {
+function selectChar(player, type, el) {
     if (player === 1) {
         selectedP1 = type;
         document.getElementById("p1-preview").innerText = "Đã chọn: " + nameMap[type];
-        const btns = document.querySelectorAll("#p1-grid .char-btn");
-        btns.forEach(btn => btn.classList.remove("selected"));
-        event.target.classList.add("selected");
+        document.querySelectorAll("#p1-grid .char-btn").forEach(btn => btn.classList.remove("selected"));
+        el.classList.add("selected");
     } else {
         selectedP2 = type;
         document.getElementById("p2-preview").innerText = "Đã chọn: " + nameMap[type];
-        const btns = document.querySelectorAll("#p2-grid .char-btn");
-        btns.forEach(btn => btn.classList.remove("selected"));
-        event.target.classList.add("selected");
+        document.querySelectorAll("#p2-grid .char-btn").forEach(btn => btn.classList.remove("selected"));
+        el.classList.add("selected");
     }
 }
 
@@ -241,7 +231,6 @@ function showMessage(text, color) {
     msgTimeout = setTimeout(() => el.style.opacity = "0", 800);
 }
 
-// LỚP NHÂN VẬT HỖ TRỢ CẢ 4 CLASS
 class Player {
     constructor({ x, facing, hpId, mpId, heroType, isP1 }) {
         this.x = x;
@@ -263,7 +252,7 @@ class Player {
         this.isAttacking = false;
         this.attackTimer = 0;
         this.hitDone = false;
-        this.attackBox = { width: 90, height: 60 };
+        this.attackBox = { width: 90, height: 100 };
         this.skillCooldown = 0;
         this.hurtTimer = 0;
     }
@@ -327,6 +316,31 @@ class Player {
         ctx.restore();
     }
 
+    // --- BỔ SUNG: VẼ KHUNG TẦM ĐÁNH / HIỆU ỨNG CHIÊU THỨC ---
+    drawAttackRange() {
+        if (!this.isAttacking) return;
+
+        const rangeX = this.facing === "right" ? this.x + this.width : this.x - this.attackBox.width;
+        const rangeY = this.y + 25;
+
+        ctx.save();
+        // Chọn màu khung theo P1 hoặc P2
+        if (this.isP1) {
+            ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
+            ctx.strokeStyle = "#ef4444";
+        } else {
+            ctx.fillStyle = "rgba(59, 130, 246, 0.25)";
+            ctx.strokeStyle = "#3b82f6";
+        }
+
+        ctx.lineWidth = 2;
+        // Vẽ vùng bị ảnh hưởng (Hitbox)
+        ctx.fillRect(rangeX, rangeY, this.attackBox.width, this.attackBox.height);
+        ctx.strokeRect(rangeX, rangeY, this.attackBox.width, this.attackBox.height);
+
+        ctx.restore();
+    }
+
     draw() {
         ctx.save();
         ctx.fillStyle = "rgba(0,0,0,0.3)";
@@ -340,6 +354,9 @@ class Player {
         } else {
             this.drawHeroPixel();
         }
+
+        // Gọi hàm vẽ tầm đánh khi tung chiêu
+        this.drawAttackRange();
     }
 
     update() {
@@ -437,15 +454,16 @@ window.addEventListener("keydown", e => {
     if (e.key === "d" || e.key === "D") keys.d = true;
     if ((e.key === "w" || e.key === "W") && player1.y >= canvas.height - groundHeight - player1.height) player1.velocity.y = -16;
     if (e.key === "u" || e.key === "U") { if (player1.attack()) setTimeout(() => checkHit(player1, player2, 10), 100); }
-    if (e.key === "i" || e.key === "I") { if (player1.skill(30, 140, "🔥 TẤN CÔNG!", "#ef4444")) setTimeout(() => checkHit(player1, player2, 22), 150); }
-    if (e.key === "o" || e.key === "O") { if (player1.skill(50, 180, "⚡ SIÊU CHIÊU!", "#eab308")) setTimeout(() => checkHit(player1, player2, 35), 180); }
+    if (e.key === "i" || e.key === "I") { if (player1.skill(30, 180, "🔥 TẤN CÔNG!", "#ef4444")) setTimeout(() => checkHit(player1, player2, 22), 150); }
+    if (e.key === "o" || e.key === "O") { if (player1.skill(50, 260, "⚡ SIÊU CHIÊU!", "#eab308")) setTimeout(() => checkHit(player1, player2, 35), 180); }
 
     // P2 CONTROLS
     if (e.key === "ArrowLeft") keys.ArrowLeft = true;
     if (e.key === "ArrowRight") keys.ArrowRight = true;
     if (e.key === "ArrowUp" && player2.y >= canvas.height - groundHeight - player2.height) player2.velocity.y = -16;
     if (e.key === "j" || e.key === "J" || e.key === "1") { if (player2.attack()) setTimeout(() => checkHit(player2, player1, 10), 100); }
-    if (e.key === "k" || e.key === "K" || e.key === "2") { if (player2.skill(30, 140, "⚔️ TUYỆT KỸ!", "#3b82f6")) setTimeout(() => checkHit(player2, player1, 22), 150); }
+    if (e.key === "k" || e.key === "K" || e.key === "2") { if (player2.skill(30, 180, "⚔️ TUYỆT KỸ!", "#3b82f6")) setTimeout(() => checkHit(player2, player1, 22), 150); }
+    if (e.key === "l" || e.key === "L" || e.key === "3") { if (player2.skill(50, 260, "💥 ĐẠI CHIÊU!", "#a855f7")) setTimeout(() => checkHit(player2, player1, 35), 180); }
 });
 
 window.addEventListener("keyup", e => {
