@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>4 Heroes Fighting - Online P2P</title>
+<title>4 Heroes Fighting - P2P & Bot Mode</title>
 <!-- Thư viện PeerJS để kết nối trực tiếp 2 máy -->
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
@@ -13,8 +13,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0f19; f
 .game-container { position: relative; width: 100vw; height: 100vh; }
 canvas { display: block; width: 100%; height: 100%; background: linear-gradient(to bottom, #0f172a 0%, #1e1b4b 55%, #090d16 100%); }
 
-/* --- MÀN HÌNH CHỌN & KẾT NỐI ONLINE --- */
-#online-overlay {
+/* --- CÁC MÀN HÌNH MENU & LOBBY --- */
+.overlay-screen {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -37,15 +37,13 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
 .input-custom:focus { border-color: #facc15; outline: none; }
 
 .btn-custom {
-    width: 100%; padding: 12px; font-size: 16px; font-weight: 900; color: #0f172a;
+    width: 100%; padding: 14px; font-size: 16px; font-weight: 900; color: #0f172a;
     background: linear-gradient(135deg, #facc15, #f59e0b); border: none; border-radius: 8px;
-    cursor: pointer; box-shadow: 0 0 15px rgba(250,204,21,0.4); transition: all 0.2s;
+    cursor: pointer; box-shadow: 0 0 15px rgba(250,204,21,0.4); transition: all 0.2s; margin-bottom: 10px;
 }
 .btn-custom:hover { transform: scale(1.02); box-shadow: 0 0 25px rgba(250,204,21,0.8); }
 
-.room-id-wrapper {
-    display: flex; gap: 8px; margin-bottom: 10px;
-}
+.room-id-wrapper { display: flex; gap: 8px; margin-bottom: 10px; }
 .room-id-display {
     flex: 1; background: #0f172a; border: 2px dashed #facc15; color: #facc15; padding: 10px;
     border-radius: 8px; font-size: 22px; font-weight: bold; letter-spacing: 3px; display: flex; align-items: center; justify-content: center;
@@ -93,34 +91,44 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
 <body>
 <div class="game-container">
 
-    <!-- PHÒNG CHỜ ONLINE -->
-    <div id="online-overlay">
+    <!-- MÀN HÌNH CHỌN CHẾ ĐỘ CHƠI -->
+    <div id="mode-select-screen" class="overlay-screen">
         <div class="lobby-box">
-            <div class="lobby-title">⚔️ ĐẤU SĨ ONLINE 1VS1</div>
+            <div class="lobby-title">⚔️ 4 HEROES FIGHTING</div>
+            <button class="btn-custom" onclick="showMode('bot')">🤖 ĐẤU VỚI MÁY (PVE)</button>
+            <button class="btn-custom" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white;" onclick="showMode('online')">🌐 ĐẤU ONLINE 1VS1</button>
+        </div>
+    </div>
+
+    <!-- PHÒNG CHỜ ONLINE -->
+    <div id="online-overlay" class="overlay-screen" style="display: none;">
+        <div class="lobby-box">
+            <div class="lobby-title">🌐 ĐẤU SĨ ONLINE</div>
             
             <div class="lobby-section">
                 <button class="btn-custom" onclick="createRoom()">TẠO PHÒNG MỚI</button>
                 <div id="room-info-area" style="margin-top: 15px; display: none;">
-                    <div style="font-size: 13px; color: #94a3b8; margin-bottom: 5px;">Mã phòng của bạn (Gửi mã này cho bạn):</div>
+                    <div style="font-size: 13px; color: #94a3b8; margin-bottom: 5px;">Mã phòng gồm 5 chữ số:</div>
                     <div class="room-id-wrapper">
                         <div class="room-id-display" id="my-room-code">-----</div>
                         <button class="btn-copy" onclick="copyRoomCode()">📋 Sao chép</button>
                     </div>
-                    <div id="connection-status" style="color: #38bdf8; font-size: 14px; font-weight: bold;">Đang chờ người chơi khác vào...</div>
+                    <div id="connection-status" style="color: #38bdf8; font-size: 14px; font-weight: bold;">Đang chờ bạn bè vào...</div>
                 </div>
             </div>
 
             <div class="lobby-section">
-                <div style="font-size: 14px; color: #cbd5e1; margin-bottom: 10px; font-weight: bold;">Hoặc tham gia phòng bạn bè:</div>
+                <div style="font-size: 14px; color: #cbd5e1; margin-bottom: 10px; font-weight: bold;">Hoặc tham gia phòng bạn:</div>
                 <input type="text" id="join-code-input" class="input-custom" placeholder="Nhập 5 số..." maxlength="5">
                 <button class="btn-custom" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white;" onclick="joinRoom()">VÀO PHÒNG</button>
             </div>
+            <button class="btn-ui" style="background: #475569; color: white; width: 100%; margin-top: 10px;" onclick="backToModeSelect()">⬅ QUAY LẠI</button>
         </div>
     </div>
 
     <!-- MÀN HÌNH CHỌN NHÂN VẬT -->
     <div id="char-select-screen">
-        <div class="select-title">CHỌN NHÂN VẬT</div>
+        <div class="select-title" id="select-screen-title">CHỌN NHÂN VẬT</div>
         <div class="select-body">
             <div class="player-card p1-card">
                 <div class="p-title" style="color: #ef4444;" id="my-card-title">BẠN (P1)</div>
@@ -134,7 +142,9 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
             <div style="font-size: 36px; font-weight: 900; color: #facc15;">VS</div>
             <div class="player-card p2-card">
                 <div class="p-title" style="color: #60a5fa;" id="enemy-card-title">ĐỐI THỦ (P2)</div>
-                <div style="font-size: 16px; color: #cbd5e1; font-weight: bold; margin-top: 20px;" id="enemy-chosen-text">Đang chọn...</div>
+                <div id="p2-select-area">
+                    <div style="font-size: 16px; color: #cbd5e1; font-weight: bold; margin-top: 20px;" id="enemy-chosen-text">Đang chọn...</div>
+                </div>
             </div>
         </div>
         <button class="btn-custom" style="max-width: 300px;" onclick="startBattle()">BẮT ĐẦU TRẬN ĐẤU ⚔️</button>
@@ -182,23 +192,53 @@ const groundHeight = 60;
 let gameStarted = false;
 let gameOver = false;
 let msgTimeout = null;
+let gameMode = 'bot'; // 'bot' hoặc 'online'
 
 let peer = null;
 let conn = null;
-let isHost = false;
+let isHost = true;
 let myHeroType = 'vosi';
 let enemyHeroType = 'kiemsi';
 
 const nameMap = { vosi: "VÕ SĨ", kiemsi: "KIẾM SĨ", phapsu: "PHÁP SƯ", cungthu: "CUNG THỦ" };
+const heroList = ['vosi', 'kiemsi', 'phapsu', 'cungthu'];
 
-// Tạo mã phòng ngẫu nhiên gồm đúng 5 chữ số
+function showMode(mode) {
+    gameMode = mode;
+    document.getElementById("mode-select-screen").style.display = "none";
+    if (mode === 'online') {
+        document.getElementById("online-overlay").style.display = "flex";
+    } else {
+        // Chế độ Bot: Vào thẳng màn chọn nhân vật, P2 tự động là Máy chọn ngẫu nhiên
+        isHost = true;
+        setupBotSelectScreen();
+        document.getElementById("char-select-screen").style.display = "flex";
+    }
+}
+
+function backToModeSelect() {
+    document.getElementById("online-overlay").style.display = "none";
+    document.getElementById("mode-select-screen").style.display = "flex";
+}
+
+function setupBotSelectScreen() {
+    document.getElementById("select-screen-title").innerText = "CHỌN NHÂN VẬT - ĐẤU VỚI MÁY";
+    document.getElementById("my-card-title").innerText = "BẠN (P1)";
+    document.getElementById("enemy-card-title").innerText = "MÁY (BOT)";
+    
+    // Random bot hero
+    enemyHeroType = heroList[Math.floor(Math.random() * heroList.length)];
+    document.getElementById("p2-select-area").innerHTML = `<div style="font-size: 18px; color: #facc15; font-weight: bold; margin-top: 20px;">🤖 MÁY CHỌN: ${nameMap[enemyHeroType]}</div>`;
+}
+
+// Tạo mã phòng ngẫu nhiên 5 chữ số cho chế độ Online
 function generateRandomRoomId() {
     return Math.floor(10000 + Math.random() * 90000).toString();
 }
 
 function createRoom() {
     const customId = generateRandomRoomId();
-    peer = new Peer(customId); // Dùng mã 5 số làm Peer ID
+    peer = new Peer(customId);
 
     peer.on('open', (id) => {
         isHost = true;
@@ -207,18 +247,14 @@ function createRoom() {
     });
 
     peer.on('error', (err) => {
-        // Nếu trùng mã ngẫu nhiên hiếm hoi thì bấm lại tạo phòng khác
-        if (err.type === 'unavailable-id') {
-            createRoom();
-        } else {
-            alert("Lỗi tạo phòng: " + err.type);
-        }
+        if (err.type === 'unavailable-id') { createRoom(); }
+        else { alert("Lỗi tạo phòng: " + err.type); }
     });
 
     peer.on('connection', (connection) => {
         conn = connection;
         setupConnection();
-        document.getElementById("connection-status").innerText = "Đã có người vào phòng! Đang chuyển màn hình...";
+        document.getElementById("connection-status").innerText = "Đã có người vào phòng! Chuyển màn hình...";
         setTimeout(() => {
             document.getElementById("online-overlay").style.display = "none";
             document.getElementById("char-select-screen").style.display = "flex";
@@ -254,9 +290,7 @@ function joinRoom() {
             document.getElementById("enemy-card-title").style.color = "#ef4444";
         });
 
-        conn.on('error', () => {
-            alert("Không tìm thấy phòng với mã này!");
-        });
+        conn.on('error', () => { alert("Không tìm thấy phòng với mã này!"); });
     });
 }
 
@@ -288,26 +322,31 @@ function selectMyChar(type, el) {
     myHeroType = type;
     document.querySelectorAll("#my-char-grid .char-btn").forEach(b => b.classList.remove("selected"));
     el.classList.add("selected");
-    if (conn && conn.open) {
+    if (gameMode === 'online' && conn && conn.open) {
         conn.send({ type: 'select', hero: type });
     }
 }
 
 function startBattle() {
-    if (conn && conn.open) {
-        conn.send({ type: 'start', hero: myHeroType });
+    if (gameMode === 'online') {
+        if (conn && conn.open) conn.send({ type: 'start', hero: myHeroType });
     }
     startBattleGame();
 }
 
 function startBattleGame() {
     document.getElementById("char-select-screen").style.display = "none";
-    if (isHost) {
+    if (gameMode === 'bot') {
         player1.setHero(myHeroType);
         player2.setHero(enemyHeroType);
     } else {
-        player2.setHero(myHeroType);
-        player1.setHero(enemyHeroType);
+        if (isHost) {
+            player1.setHero(myHeroType);
+            player2.setHero(enemyHeroType);
+        } else {
+            player2.setHero(myHeroType);
+            player1.setHero(enemyHeroType);
+        }
     }
     gameStarted = true;
 }
@@ -328,12 +367,14 @@ class Player {
         this.heroType = heroType; this.frame = 0; this.animTimer = 0;
         this.isAttacking = false; this.attackTimer = 0; this.hitDone = false;
         this.attackBox = { width: 90, height: 100 }; this.hurtTimer = 0;
+        this.botActionTimer = 0;
     }
 
     setHero(type) {
         this.heroType = type;
         const elId = this.isP1 ? "p1-title" : "p2-title";
-        document.getElementById(elId).innerText = `${this.isP1 ? 'P1' : 'P2'}: ${nameMap[type]}`;
+        let label = this.isP1 ? 'P1' : (gameMode === 'bot' ? 'BOT' : 'P2');
+        document.getElementById(elId).innerText = `${label}: ${nameMap[type]}`;
     }
 
     drawHeroPixel() {
@@ -443,16 +484,16 @@ class Player {
 
     skill(cost, range, text, color) {
         if (this.isAttacking || this.hp <= 0) return false;
-        if (this.mp < cost) { showMessage("CHƯA ĐỦ MP!", "#a855f7"); return false; }
+        if (this.mp < cost) { if (this.isP1) showMessage("CHƯA ĐỦ MP!", "#a855f7"); return false; }
         this.mp -= cost; this.updateUI();
         this.isAttacking = true; this.hitDone = false; this.attackTimer = 22;
-        showMessage(text, color);
+        if (this.isP1 || gameMode === 'bot') showMessage(text, color);
         return true;
     }
 
     takeDamage(amount) {
         this.hp = Math.max(0, this.hp - amount);
-        this.mp = Math.min(100, this.mp + 12);
+        this.mp = Math.min(100, this.mp + 15);
         this.hurtTimer = 16;
         this.updateUI();
     }
@@ -473,15 +514,68 @@ function checkHit(attacker, defender, damage) {
     const attackX = attacker.facing === "right" ? attacker.x + attacker.width : attacker.x - attacker.attackBox.width;
 
     if (attackX < defender.x + defender.width && attackX + attacker.attackBox.width > defender.x &&
-        attacker.y < defender.y + defender.height && attacker.y + attacker.height > defender.y) {
+        attacker.y < defender.y + defender.height && attacker.y + heightCheck(attacker, defender)) {
         
         attacker.hitDone = true;
         defender.takeDamage(damage);
         
         if (player1.hp <= 0 || player2.hp <= 0) {
             gameOver = true;
-            document.getElementById("winner-text").innerText = (isHost ? (player1.hp <= 0 ? "BẠN THUA!" : "BẠN THẮNG!") : (player2.hp <= 0 ? "BẠN THUA!" : "BẠN THẮNG!"));
+            let winMsg = "";
+            if (gameMode === 'bot') {
+                winMsg = player1.hp <= 0 ? "MÁY THẮNG RỒI!" : "BẠN ĐÃ THẮNG!";
+            } else {
+                winMsg = isHost ? (player1.hp <= 0 ? "BẠN THUA!" : "BẠN THẮNG!") : (player2.hp <= 0 ? "BẠN THUA!" : "BẠN THẮNG!");
+            }
+            document.getElementById("winner-text").innerText = winMsg;
             document.getElementById("game-over").style.display = "block";
+        }
+    }
+}
+
+function heightCheck(a, d) {
+    return a.y + a.height > d.y;
+}
+
+// LOGIC ĐIỀU KHIỂN BOT AI
+function updateBotAI() {
+    if (!gameStarted || gameOver || gameMode !== 'bot') return;
+
+    const dx = player1.x - player2.x;
+    const dist = Math.abs(dx);
+    player2.facing = dx > 0 ? "right" : "left";
+
+    player2.botActionTimer++;
+
+    // Di chuyển hướng về phía người chơi
+    if (dist > 90) {
+        player2.velocity.x = dx > 0 ? 4 : -4;
+    } else if (dist < 60) {
+        player2.velocity.x = dx > 0 ? -3 : 3; // Lùi nhẹ nếu quá sát
+    } else {
+        player2.velocity.x = 0;
+    }
+
+    // Nhảy ngẫu nhiên né đòn hoặc áp sát
+    if (player2.botActionTimer % 70 === 0 && player2.y >= canvas.height - groundHeight - player2.height) {
+        if (Math.random() < 0.6) player2.velocity.y = -15;
+    }
+
+    // Tấn công khi ở cự ly gần
+    if (dist < 110 && player2.botActionTimer % 35 === 0) {
+        let rand = Math.random();
+        if (rand < 0.4 && player2.mp >= 50) {
+            if (player2.skill(50, 300, "🔥 MÁY CHIÊU 2!", "#facc15")) {
+                setTimeout(() => checkHit(player2, player1, 35), 180);
+            }
+        } else if (rand < 0.7 && player2.mp >= 30) {
+            if (player2.skill(30, 200, "⚡ MÁY CHIÊU 1!", "#38bdf8")) {
+                setTimeout(() => checkHit(player2, player1, 22), 150);
+            }
+        } else {
+            if (player2.attack()) {
+                setTimeout(() => checkHit(player2, player1, 10), 100);
+            }
         }
     }
 }
@@ -489,7 +583,7 @@ function checkHit(attacker, defender, damage) {
 window.addEventListener("keydown", e => {
     if (!gameStarted || gameOver) return;
 
-    let myPlayer = isHost ? player1 : player2;
+    let myPlayer = (gameMode === 'online' && !isHost) ? player2 : player1;
     let actionType = null;
     let skillText = "";
 
@@ -501,25 +595,25 @@ window.addEventListener("keydown", e => {
     if (e.key === "u" || e.key === "U") {
         if (myPlayer.attack()) {
             actionType = 'attack';
-            if (isHost) setTimeout(() => checkHit(player1, player2, 10), 100);
+            if (gameMode === 'bot' || isHost) setTimeout(() => checkHit(player1, player2, 10), 100);
         }
     }
     if (e.key === "i" || e.key === "I") {
         skillText = "⚡ KỸ NĂNG 1!";
         if (myPlayer.skill(30, 200, skillText, "#38bdf8")) {
             actionType = 'skill1';
-            if (isHost) setTimeout(() => checkHit(player1, player2, 22), 150);
+            if (gameMode === 'bot' || isHost) setTimeout(() => checkHit(player1, player2, 22), 150);
         }
     }
     if (e.key === "o" || e.key === "O") {
         skillText = "🔥 KỸ NĂNG 2!";
         if (myPlayer.skill(50, 300, skillText, "#facc15")) {
             actionType = 'skill2';
-            if (isHost) setTimeout(() => checkHit(player1, player2, 35), 180);
+            if (gameMode === 'bot' || isHost) setTimeout(() => checkHit(player1, player2, 35), 180);
         }
     }
 
-    if (conn && conn.open) {
+    if (gameMode === 'online' && conn && conn.open) {
         conn.send({
             type: 'input',
             x: myPlayer.x,
@@ -542,14 +636,18 @@ function animate() {
     ctx.fillStyle = "#1e293b"; ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
 
     if (gameStarted && !gameOver) {
-        let myPlayer = isHost ? player1 : player2;
+        let myPlayer = (gameMode === 'online' && !isHost) ? player2 : player1;
 
         myPlayer.velocity.x = keys.a ? -6 : (keys.d ? 6 : 0);
         if (keys.a) myPlayer.facing = "left"; 
         else if (keys.d) myPlayer.facing = "right";
 
-        if (conn && conn.open && (keys.a || keys.d)) {
+        if (gameMode === 'online' && conn && conn.open && (keys.a || keys.d)) {
             conn.send({ type: 'input', x: myPlayer.x, y: myPlayer.y, facing: myPlayer.facing, action: null });
+        }
+
+        if (gameMode === 'bot') {
+            updateBotAI();
         }
 
         player1.update();
