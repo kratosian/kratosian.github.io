@@ -130,17 +130,19 @@
 
     // Load Sprite Sheet Nhân Vật
     const spriteSheet = new Image();
-    // Load Sprite Sheet Nhân Vật
-const spriteSheet = new Image();
-let isImageLoaded = false;
-spriteSheet.src = 'hero.png';
-spriteSheet.onload = () => { isImageLoaded = true; };
-spriteSheet.onerror = () => {
-  spriteSheet.src = '3c0ec9cc-f01d-4f87-9ad4-8cf2a52739d5.jpg';
-};
+    let isImageLoaded = false;
+
+    spriteSheet.onload = () => { isImageLoaded = true; };
+    spriteSheet.onerror = () => {
+      // Tự động load tên file gốc nếu file hero.png chưa nhận diện
+      if (!spriteSheet.src.includes('3c0ec9cc-f01d-4f87-9ad4-8cf2a52739d5.jpg')) {
+        spriteSheet.src = '3c0ec9cc-f01d-4f87-9ad4-8cf2a52739d5.jpg';
+      }
+    };
+    spriteSheet.src = 'hero.png';
 
     class Player {
-      constructor({ x, y, facing, hpId, mpId, spriteCrop }) {
+      constructor({ x, y, facing, hpId, mpId, spriteCrop, fallbackColor }) {
         this.x = x;
         this.y = y;
         this.width = 65;
@@ -151,7 +153,8 @@ spriteSheet.onerror = () => {
         this.mp = 0;
         this.hpId = hpId;
         this.mpId = mpId;
-        this.spriteCrop = spriteCrop; // Tọa độ cắt ảnh
+        this.spriteCrop = spriteCrop;
+        this.fallbackColor = fallbackColor;
         this.isAttacking = false;
         this.attackType = 'normal';
         this.attackBox = { x: 0, y: 0, width: 60, height: 40 };
@@ -160,25 +163,28 @@ spriteSheet.onerror = () => {
       draw() {
         ctx.save();
         
-        // Vẽ nhân vật từ sprite hero.png
-        if (this.facing === 'left') {
-          ctx.translate(this.x + this.width, this.y);
-          ctx.scale(-1, 1);
-          ctx.drawImage(
-            spriteSheet, 
-            this.spriteCrop.x, this.spriteCrop.y, this.spriteCrop.w, this.spriteCrop.h,
-            0, 0, this.width, this.height
-          );
+        if (isImageLoaded || (spriteSheet.complete && spriteSheet.naturalWidth > 0)) {
+          // Tính toán vị trí cắt theo tỷ lệ phần trăm kích thước ảnh gốc
+          const sx = (this.spriteCrop.x / 100) * spriteSheet.naturalWidth;
+          const sy = (this.spriteCrop.y / 100) * spriteSheet.naturalHeight;
+          const sw = (this.spriteCrop.w / 100) * spriteSheet.naturalWidth;
+          const sh = (this.spriteCrop.h / 100) * spriteSheet.naturalHeight;
+
+          if (this.facing === 'left') {
+            ctx.translate(this.x + this.width, this.y);
+            ctx.scale(-1, 1);
+            ctx.drawImage(spriteSheet, sx, sy, sw, sh, 0, 0, this.width, this.height);
+          } else {
+            ctx.drawImage(spriteSheet, sx, sy, sw, sh, this.x, this.y, this.width, this.height);
+          }
         } else {
-          ctx.drawImage(
-            spriteSheet, 
-            this.spriteCrop.x, this.spriteCrop.y, this.spriteCrop.w, this.spriteCrop.h,
-            this.x, this.y, this.width, this.height
-          );
+          // Hiện khối màu nếu chưa load kịp ảnh
+          ctx.fillStyle = this.fallbackColor;
+          ctx.fillRect(this.x, this.y, this.width, this.height);
         }
         ctx.restore();
 
-        // Hiệu ứng Hitbox đòn đánh
+        // Hitbox đòn đánh
         if (this.isAttacking) {
           if (this.attackType === 'normal') ctx.fillStyle = 'rgba(255, 230, 0, 0.5)';
           if (this.attackType === 'skill1') ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
@@ -241,15 +247,15 @@ spriteSheet.onerror = () => {
       }
     }
 
-    // Cắt góc ảnh nhân vật Võ sĩ (P1) và Kiếm sĩ (P2)
+    // Thiết lập tọa độ % vị trí cắt khung hình nhân vật
     const player1 = new Player({ 
-      x: 150, y: 200, facing: 'right', hpId: 'p1-hp', mpId: 'p1-mp',
-      spriteCrop: { x: 190, y: 190, w: 70, h: 100 } 
+      x: 150, y: 200, facing: 'right', hpId: 'p1-hp', mpId: 'p1-mp', fallbackColor: '#ef4444',
+      spriteCrop: { x: 18, y: 19, w: 13, h: 18 } 
     });
 
     const player2 = new Player({ 
-      x: 610, y: 200, facing: 'left', hpId: 'p2-hp', mpId: 'p2-mp',
-      spriteCrop: { x: 700, y: 190, w: 70, h: 100 } 
+      x: 610, y: 200, facing: 'left', hpId: 'p2-hp', mpId: 'p2-mp', fallbackColor: '#3b82f6',
+      spriteCrop: { x: 68, y: 19, w: 13, h: 18 } 
     });
 
     const keys = {
@@ -258,7 +264,6 @@ spriteSheet.onerror = () => {
     };
 
     window.addEventListener('keydown', (e) => {
-      // P1 Controls
       if (e.key === 'a' || e.key === 'A') keys.a = true;
       if (e.key === 'd' || e.key === 'D') keys.d = true;
       if (e.key === 'w' || e.key === 'W') keys.w = true;
@@ -276,7 +281,6 @@ spriteSheet.onerror = () => {
         if (player1.attack('ultimate', 160, 80)) checkHit(player1, player2, 50);
       }
 
-      // P2 Controls
       if (e.key === 'ArrowLeft') keys.ArrowLeft = true;
       if (e.key === 'ArrowRight') keys.ArrowRight = true;
       if (e.key === 'ArrowUp') keys.ArrowUp = true;
@@ -339,17 +343,17 @@ spriteSheet.onerror = () => {
       animationId = requestAnimationFrame(animate);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Vẽ sàn
+      // Sàn đấu
       ctx.fillStyle = '#334155';
       ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
 
-      // Di chuyển P1
+      // Điều khiển P1
       player1.velocity.x = 0;
       if (keys.a) { player1.velocity.x = -4; player1.facing = 'left'; }
       if (keys.d) { player1.velocity.x = 4; player1.facing = 'right'; }
       if (keys.w && player1.y + player1.height >= groundY) player1.velocity.y = -14;
 
-      // Di chuyển P2
+      // Điều khiển P2
       player2.velocity.x = 0;
       if (keys.ArrowLeft) { player2.velocity.x = -4; player2.facing = 'left'; }
       if (keys.ArrowRight) { player2.velocity.x = 4; player2.facing = 'right'; }
@@ -363,13 +367,7 @@ spriteSheet.onerror = () => {
       }
     }
 
-    spriteSheet.onload = () => {
-      animate();
-    };
-    // Nếu ảnh đã load xong sẵn từ cache
-    if (spriteSheet.complete) {
-      animate();
-    }
+    animate();
   </script>
 </body>
 </html>
