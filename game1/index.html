@@ -3,173 +3,231 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kratos 1v1 Fighting - Prototype</title>
+  <title>Kratos 1v1 Fighting - Fullscreen Edition</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
       background: #0f172a;
-      color: #fff;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      user-select: none;
     }
     .game-container {
       position: relative;
-      width: 800px;
-      height: 450px;
-      border: 3px solid #38bdf8;
-      box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+      width: 100vw;
+      height: 100vh;
     }
-    canvas { background: #1e293b; display: block; }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: #1e293b;
+    }
+    
     .ui-layer {
       position: absolute;
-      top: 15px;
-      left: 20px;
-      right: 20px;
+      top: 20px;
+      left: 40px;
+      right: 40px;
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 10;
     }
-    .status-group { width: 320px; }
+    .status-group {
+      width: 38%;
+      max-width: 450px;
+    }
     .bar-container {
       width: 100%;
-      height: 20px;
-      background: #334155;
-      border: 2px solid #fff;
+      height: 24px;
+      background: rgba(51, 65, 85, 0.8);
+      border: 2px solid #ffffff;
       border-radius: 6px;
       overflow: hidden;
       margin-bottom: 6px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
     }
     .mp-container {
-      height: 12px;
+      height: 14px;
       border-color: #94a3b8;
     }
-    .health-bar { height: 100%; width: 100%; transition: width 0.1s ease; }
-    .mana-bar { height: 100%; width: 0%; transition: width 0.1s ease; background: #a855f7; }
+    .health-bar {
+      height: 100%;
+      width: 100%;
+      transition: width 0.1s ease;
+    }
+    .mana-bar {
+      height: 100%;
+      width: 0%;
+      transition: width 0.1s ease;
+      background: #a855f7;
+    }
     #p1-hp { background: #ef4444; }
     #p2-hp { background: #3b82f6; float: right; }
     #p2-mp { float: right; }
     
-    .controls-info {
-      margin-top: 15px;
-      font-size: 14px;
-      color: #94a3b8;
-      text-align: center;
-      line-height: 1.6;
+    .vs-logo {
+      font-size: 28px;
+      font-weight: 900;
+      color: #facc15;
+      text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+      margin-top: 5px;
     }
+
+    .controls-info {
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      text-align: center;
+      line-height: 1.5;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 8px 18px;
+      border-radius: 20px;
+      backdrop-filter: blur(4px);
+      z-index: 10;
+      pointer-events: none;
+    }
+
     #game-over {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       background: rgba(15, 23, 42, 0.95);
-      padding: 30px;
-      border-radius: 12px;
+      padding: 40px 60px;
+      border-radius: 16px;
       border: 2px solid #38bdf8;
       text-align: center;
       display: none;
+      z-index: 20;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7);
     }
     button {
-      margin-top: 15px;
-      padding: 10px 20px;
+      margin-top: 20px;
+      padding: 12px 28px;
       background: #38bdf8;
       border: none;
       color: #0f172a;
+      font-size: 16px;
       font-weight: bold;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
+      transition: transform 0.1s;
     }
-    button:hover { background: #0284c7; color: #fff; }
+    button:hover {
+      transform: scale(1.05);
+    }
   </style>
 </head>
 <body>
 
-  <h2 style="margin-bottom: 10px;">KRATOS 1V1 FIGHTING PROTOTYPE</h2>
-
   <div class="game-container">
     <div class="ui-layer">
-      <!-- P1 Status -->
       <div class="status-group">
-        <div style="font-weight:bold; margin-bottom:4px; color:#ef4444;">P1: VÕ SĨ</div>
+        <div style="font-weight:bold; font-size: 18px; margin-bottom:6px; color:#ef4444; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">P1: VÕ SĨ</div>
         <div class="bar-container"><div id="p1-hp" class="health-bar"></div></div>
         <div class="bar-container mp-container"><div id="p1-mp" class="mana-bar"></div></div>
       </div>
 
-      <div style="font-size: 20px; font-weight: bold;">VS</div>
+      <div class="vs-logo">VS</div>
 
-      <!-- P2 Status -->
       <div class="status-group">
-        <div style="font-weight:bold; margin-bottom:4px; color:#3b82f6; text-align:right;">P2: KIẾM SĨ</div>
+        <div style="font-weight:bold; font-size: 18px; margin-bottom:6px; color:#3b82f6; text-align:right; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">P2: KIẾM SĨ</div>
         <div class="bar-container"><div id="p2-hp" class="health-bar"></div></div>
         <div class="bar-container mp-container"><div id="p2-mp" class="mana-bar"></div></div>
       </div>
     </div>
 
     <div id="game-over">
-      <h1 id="winner-text" style="color: #facc15; margin-bottom: 10px;">P1 THẮNG!</h1>
+      <h1 id="winner-text" style="color: #facc15; font-size: 36px; margin-bottom: 10px;">P1 THẮNG!</h1>
       <button onclick="resetGame()">CHƠI LẠI</button>
     </div>
 
-    <canvas id="gameCanvas" width="800" height="450"></canvas>
-  </div>
+    <div class="controls-info">
+      <b>P1:</b> A/D (Di chuyển), W (Nhảy) | U (Tấn công - Cộng MP), I/O/P (Chiêu)<br>
+      <b>P2:</b> Phím mũi tên (Di chuyển/Nhảy) | Num 1 (Tấn công - Cộng MP), Num 2/3/4 (Chiêu)
+    </div>
 
-  <div class="controls-info">
-    <b>P1:</b> A/D (Chạy), W (Nhảy), U (Đánh - Tích MP), I (Skill 1 - 30MP), O (Skill 2 - 50MP), P (Chiêu cuối - 80MP)<br>
-    <b>P2:</b> ←/→ (Chạy), ↑ (Nhảy), Num 1 (Đánh), Num 2 (Skill 1), Num 3 (Skill 2), Num 4 (Chiêu cuối)
+    <canvas id="gameCanvas"></canvas>
   </div>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    const gravity = 0.7;
-    const groundY = 380;
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const gravity = 0.8;
+
+    // TẢI ẢNH HERO.JPG (Chính xác theo tên file trong thư mục của bạn)
+    const spriteSheet = new Image();
+    let imgLoaded = false;
+    spriteSheet.src = 'hero.jpg'; 
+    spriteSheet.onload = () => { imgLoaded = true; };
 
     class Player {
-      constructor({ x, y, color, facing, hpId, mpId }) {
+      constructor({ x, facing, hpId, mpId, color }) {
         this.x = x;
-        this.y = y;
-        this.width = 40;
-        this.height = 80;
+        this.y = 100;
+        this.width = 80;
+        this.height = 120;
         this.velocity = { x: 0, y: 0 };
-        this.color = color;
         this.facing = facing;
         this.hp = 100;
         this.mp = 0;
         this.hpId = hpId;
         this.mpId = mpId;
+        this.color = color;
         this.isAttacking = false;
-        this.attackType = 'normal';
-        this.attackBox = { x: 0, y: 0, width: 60, height: 40 };
+        this.attackBox = { x: 0, y: 0, width: 80, height: 50 };
       }
 
       draw() {
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        if (imgLoaded) {
+          ctx.save();
+          if (this.facing === 'left') {
+            ctx.translate(this.x + this.width, this.y);
+            ctx.scale(-1, 1);
+            ctx.drawImage(spriteSheet, 0, 0, spriteSheet.width / 2, spriteSheet.height, 0, 0, this.width, this.height);
+          } else {
+            ctx.drawImage(spriteSheet, 0, 0, spriteSheet.width / 2, spriteSheet.height, this.x, this.y, this.width, this.height);
+          }
+          ctx.restore();
+        } else {
+          // Khối hình vẽ dự phòng nếu chưa load xong ảnh
+          ctx.fillStyle = this.color;
+          ctx.fillRect(this.x, this.y, this.width, this.height);
+          ctx.fillStyle = '#ffffff';
+          const eyeX = this.facing === 'right' ? this.x + 55 : this.x + 10;
+          ctx.fillRect(eyeX, this.y + 20, 12, 12);
+        }
 
-        // Mắt hướng quay mặt
-        ctx.fillStyle = '#fff';
-        const eyeX = this.facing === 'right' ? this.x + 25 : this.x + 5;
-        ctx.fillRect(eyeX, this.y + 15, 10, 10);
-
-        // Hiệu ứng Hitbox đòn đánh
         if (this.isAttacking) {
-          if (this.attackType === 'normal') ctx.fillStyle = 'rgba(255, 230, 0, 0.6)';
-          if (this.attackType === 'skill1') ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
-          if (this.attackType === 'skill2') ctx.fillStyle = 'rgba(234, 179, 8, 0.7)';
-          if (this.attackType === 'ultimate') ctx.fillStyle = 'rgba(168, 85, 247, 0.8)';
-
+          ctx.fillStyle = 'rgba(255, 230, 0, 0.6)';
           const boxX = this.facing === 'right' ? this.x + this.width : this.x - this.attackBox.width;
-          this.attackBox.x = boxX;
-          this.attackBox.y = this.y + 10;
-          ctx.fillRect(this.attackBox.x, this.attackBox.y, this.attackBox.width, this.attackBox.height);
+          ctx.fillRect(boxX, this.y + 25, this.attackBox.width, this.attackBox.height);
         }
       }
 
       update() {
+        const groundY = canvas.height - 60;
+
         this.x += this.velocity.x;
         this.y += this.velocity.y;
 
@@ -186,29 +244,19 @@
         this.draw();
       }
 
-      attack(type = 'normal', boxWidth = 60, costMP = 0) {
-        if (this.isAttacking) return false;
-        if (this.mp < costMP) return false; // Không đủ MP
-
+      attack(boxWidth = 80, costMP = 0) {
+        if (this.isAttacking || this.mp < costMP) return false;
         this.mp -= costMP;
         this.updateUI();
-
         this.isAttacking = true;
-        this.attackType = type;
         this.attackBox.width = boxWidth;
-
         setTimeout(() => { this.isAttacking = false; }, 200);
         return true;
       }
 
-      addMP(amount) {
-        this.mp = Math.min(100, this.mp + amount);
-        this.updateUI();
-      }
-
       takeDamage(amount) {
         this.hp = Math.max(0, this.hp - amount);
-        this.addMP(10); // +10 MP khi bị đánh trúng
+        this.mp = Math.min(100, this.mp + 10);
         this.updateUI();
       }
 
@@ -218,57 +266,33 @@
       }
     }
 
-    const player1 = new Player({ x: 150, y: 200, color: '#ef4444', facing: 'right', hpId: 'p1-hp', mpId: 'p1-mp' });
-    const player2 = new Player({ x: 610, y: 200, color: '#3b82f6', facing: 'left', hpId: 'p2-hp', mpId: 'p2-mp' });
+    const player1 = new Player({ x: canvas.width * 0.2, facing: 'right', hpId: 'p1-hp', mpId: 'p1-mp', color: '#ef4444' });
+    const player2 = new Player({ x: canvas.width * 0.75, facing: 'left', hpId: 'p2-hp', mpId: 'p2-mp', color: '#3b82f6' });
 
-    const keys = {
-      a: false, d: false, w: false,
-      ArrowLeft: false, ArrowRight: false, ArrowUp: false
-    };
+    const keys = { a: false, d: false, w: false, ArrowLeft: false, ArrowRight: false, ArrowUp: false };
 
     window.addEventListener('keydown', (e) => {
-      // Controls P1
       if (e.key === 'a' || e.key === 'A') keys.a = true;
       if (e.key === 'd' || e.key === 'D') keys.d = true;
       if (e.key === 'w' || e.key === 'W') keys.w = true;
-      
-      if (e.key === 'u' || e.key === 'U') {
-        if (player1.attack('normal', 60, 0)) checkHit(player1, player2, 10);
-      }
-      if (e.key === 'i' || e.key === 'I') {
-        if (player1.attack('skill1', 90, 30)) checkHit(player1, player2, 20);
-      }
-      if (e.key === 'o' || e.key === 'O') {
-        if (player1.attack('skill2', 120, 50)) checkHit(player1, player2, 30);
-      }
-      if (e.key === 'p' || e.key === 'P') {
-        if (player1.attack('ultimate', 160, 80)) checkHit(player1, player2, 50);
-      }
+      if (e.key === 'u' || e.key === 'U') { if (player1.attack(80, 0)) checkHit(player1, player2, 10); }
+      if (e.key === 'i' || e.key === 'I') { if (player1.attack(120, 30)) checkHit(player1, player2, 20); }
+      if (e.key === 'o' || e.key === 'O') { if (player1.attack(160, 50)) checkHit(player1, player2, 30); }
+      if (e.key === 'p' || e.key === 'P') { if (player1.attack(220, 80)) checkHit(player1, player2, 50); }
 
-      // Controls P2
       if (e.key === 'ArrowLeft') keys.ArrowLeft = true;
       if (e.key === 'ArrowRight') keys.ArrowRight = true;
       if (e.key === 'ArrowUp') keys.ArrowUp = true;
-      
-      if (e.key === '1') {
-        if (player2.attack('normal', 60, 0)) checkHit(player2, player1, 10);
-      }
-      if (e.key === '2') {
-        if (player2.attack('skill1', 90, 30)) checkHit(player2, player1, 20);
-      }
-      if (e.key === '3') {
-        if (player2.attack('skill2', 120, 50)) checkHit(player2, player1, 30);
-      }
-      if (e.key === '4') {
-        if (player2.attack('ultimate', 160, 80)) checkHit(player2, player1, 50);
-      }
+      if (e.key === '1') { if (player2.attack(80, 0)) checkHit(player2, player1, 10); }
+      if (e.key === '2') { if (player2.attack(120, 30)) checkHit(player2, player1, 20); }
+      if (e.key === '3') { if (player2.attack(160, 50)) checkHit(player2, player1, 30); }
+      if (e.key === '4') { if (player2.attack(220, 80)) checkHit(player2, player1, 50); }
     });
 
     window.addEventListener('keyup', (e) => {
       if (e.key === 'a' || e.key === 'A') keys.a = false;
       if (e.key === 'd' || e.key === 'D') keys.d = false;
       if (e.key === 'w' || e.key === 'W') keys.w = false;
-
       if (e.key === 'ArrowLeft') keys.ArrowLeft = false;
       if (e.key === 'ArrowRight') keys.ArrowRight = false;
       if (e.key === 'ArrowUp') keys.ArrowUp = false;
@@ -276,60 +300,50 @@
 
     function checkHit(attacker, defender, damage) {
       const boxX = attacker.facing === 'right' ? attacker.x + attacker.width : attacker.x - attacker.attackBox.width;
-      const boxY = attacker.y + 10;
-
-      if (
-        boxX < defender.x + defender.width &&
-        boxX + attacker.attackBox.width > defender.x &&
-        boxY < defender.y + defender.height &&
-        boxY + attacker.attackBox.height > defender.y
-      ) {
+      if (boxX < defender.x + defender.width && boxX + attacker.attackBox.width > defender.x) {
         defender.takeDamage(damage);
-        attacker.addMP(15); // +15 MP khi đánh trúng
+        
+        // Cộng MP khi đánh trúng
+        attacker.mp = Math.min(100, attacker.mp + 15);
+        attacker.updateUI();
 
         if (defender.hp === 0) {
-          document.getElementById('winner-text').innerText = (attacker === player1 ? 'P1 (VÕ SĨ)' : 'P2 (KIẾM SĨ)') + ' THẮNG!';
+          document.getElementById('winner-text').innerText = (attacker === player1 ? 'P1' : 'P2') + ' THẮNG!';
           document.getElementById('game-over').style.display = 'block';
         }
       }
     }
 
     function resetGame() {
-      player1.hp = 100; player1.mp = 0; player1.x = 150;
-      player2.hp = 100; player2.mp = 0; player2.x = 610;
-      player1.updateUI();
-      player2.updateUI();
+      player1.hp = 100; player1.mp = 0; player1.x = canvas.width * 0.2;
+      player2.hp = 100; player2.mp = 0; player2.x = canvas.width * 0.75;
+      player1.updateUI(); player2.updateUI();
       document.getElementById('game-over').style.display = 'none';
       animate();
     }
 
-    let animationId;
     function animate() {
-      animationId = requestAnimationFrame(animate);
+      const animId = requestAnimationFrame(animate);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Vẽ sàn
+      const groundY = canvas.height - 60;
       ctx.fillStyle = '#334155';
-      ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+      ctx.fillRect(0, groundY, canvas.width, 60);
 
-      // Di chuyển P1
-      player1.velocity.x = 0;
-      if (keys.a) { player1.velocity.x = -4; player1.facing = 'left'; }
-      if (keys.d) { player1.velocity.x = 4; player1.facing = 'right'; }
-      if (keys.w && player1.y + player1.height >= groundY) player1.velocity.y = -14;
+      player1.velocity.x = keys.a ? -6 : (keys.d ? 6 : 0);
+      if (keys.a) player1.facing = 'left';
+      if (keys.d) player1.facing = 'right';
+      if (keys.w && player1.y + player1.height >= groundY) player1.velocity.y = -16;
 
-      // Di chuyển P2
-      player2.velocity.x = 0;
-      if (keys.ArrowLeft) { player2.velocity.x = -4; player2.facing = 'left'; }
-      if (keys.ArrowRight) { player2.velocity.x = 4; player2.facing = 'right'; }
-      if (keys.ArrowUp && player2.y + player2.height >= groundY) player2.velocity.y = -14;
+      player2.velocity.x = keys.ArrowLeft ? -6 : (keys.ArrowRight ? 6 : 0);
+      if (keys.ArrowLeft) player2.facing = 'left';
+      if (keys.ArrowRight) player2.facing = 'right';
+      if (keys.ArrowUp && player2.y + player2.height >= groundY) player2.velocity.y = -16;
 
       player1.update();
       player2.update();
 
-      if (player1.hp === 0 || player2.hp === 0) {
-        cancelAnimationFrame(animationId);
-      }
+      if (player1.hp === 0 || player2.hp === 0) cancelAnimationFrame(animId);
     }
 
     animate();
