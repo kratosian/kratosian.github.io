@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>4 Heroes Fighting - Võ Sĩ Sấm Sét</title>
+<title>4 Heroes Fighting - Đầy Đủ Hiệu Ứng</title>
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -170,7 +170,7 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
     </div>
 
     <div class="controls-info">
-        <b>P1:</b> A/D Di chuyển · W Nhảy · U Đấm Thường · I/O Chiêu Sấm Sét<br>
+        <b>P1:</b> A/D Di chuyển · W Nhảy · U Đấm Thường · I/O Chiêu Năng Lượng<br>
         <b>P2:</b> Mũi tên ←/→ Di chuyển · ↑ Nhảy · J/1 Đấm Thường · K/L/2,3 Chiêu
     </div>
 
@@ -280,7 +280,7 @@ class Player {
         if (this.heroType === "vosi") {
             ctx.fillStyle = "#ffdbac"; ctx.fillRect(12, 4 + bodyY, 16, 14);
             ctx.fillStyle = "#1e1b18"; ctx.fillRect(10, 2 + bodyY, 20, 6);
-            ctx.fillStyle = "#38bdf8"; ctx.fillRect(10, 7 + bodyY, 20, 3); // Băng trán điện xanh
+            ctx.fillStyle = "#38bdf8"; ctx.fillRect(10, 7 + bodyY, 20, 3);
             ctx.fillStyle = "#e0a96d"; ctx.fillRect(10, 18 + bodyY, 20, 22);
             ctx.fillStyle = "#0284c7"; ctx.fillRect(22 + armOffset, 20 + bodyY, 10, 10);
             ctx.fillStyle = "#0369a1"; ctx.fillRect(11, 38 + bodyY, 18, 12);
@@ -328,12 +328,8 @@ class Player {
         ctx.save();
 
         if (this.heroType === "vosi") {
-            // ==========================================
-            // HIỆU ỨNG CÚ ĐẤM SẤM SÉT (LIGHTNING SMASH EFFECT)
-            // ==========================================
+            // HIỆU ỨNG SẤM SÉT VÕ SĨ
             let progress = (18 - this.attackTimer) / 18;
-
-            // 1. Vùng sáng năng lượng điện bao phủ
             let auraGrad = ctx.createRadialGradient(
                 isRight ? rangeX + 20 : rangeX + width - 20, rangeY + height / 2, 10,
                 isRight ? rangeX + width / 2 : rangeX + width / 2, rangeY + height / 2, width
@@ -345,18 +341,12 @@ class Player {
             ctx.fillStyle = auraGrad;
             ctx.fillRect(rangeX, rangeY, width, height);
 
-            // 2. Tia chớp giật dích dắc cực mạnh (Lightning Bolts)
-            ctx.shadowColor = "#38bdf8";
-            ctx.shadowBlur = 25;
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 3.5;
-
+            ctx.shadowColor = "#38bdf8"; ctx.shadowBlur = 25; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3.5;
             for (let i = 0; i < 4; i++) {
                 ctx.beginPath();
                 let startX = isRight ? rangeX + Math.random() * (width * 0.3) : rangeX + width - Math.random() * (width * 0.3);
                 let startY = rangeY + Math.random() * height;
                 ctx.moveTo(startX, startY);
-                // Vẽ dích dắc mô phỏng tia sét
                 for (let step = 0; step < 4; step++) {
                     startX += (isRight ? 1 : -1) * (15 + Math.random() * 20);
                     startY += (Math.random() * 30 - 15);
@@ -365,18 +355,13 @@ class Player {
                 ctx.stroke();
             }
 
-            // 3. Vòng bùng nổ sấm sét tại điểm va chạm
-            ctx.strokeStyle = "#facc15";
-            ctx.lineWidth = 5;
+            ctx.strokeStyle = "#facc15"; ctx.lineWidth = 5;
             let cx = isRight ? rangeX + width * 0.75 : rangeX + width * 0.25;
             let cy = rangeY + height / 2;
-            let radius = progress * 45;
-
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-            ctx.stroke();
+            ctx.beginPath(); ctx.arc(cx, cy, progress * 45, 0, Math.PI * 2); ctx.stroke();
 
         } else if (this.heroType === "kiemsi") {
+            // HIỆU ỨNG KIẾM SĨ (Vòng cung chém)
             const color = this.isP1 ? "#ef4444" : "#3b82f6";
             const centerX = this.x + this.width / 2;
             const centerY = this.y + this.height / 2;
@@ -393,18 +378,33 @@ class Player {
             ctx.beginPath(); ctx.arc(centerX, centerY, radius, startAngle, endAngle, !isRight); ctx.stroke();
 
         } else if (this.heroType === "phapsu") {
+            // HIỆU ỨNG PHÁP SƯ (Vùng ma pháp lan tỏa)
             const mainColor = this.isP1 ? "239, 68, 68" : "168, 85, 247";
             let energyGrad = ctx.createRadialGradient(
                 isRight ? rangeX : rangeX + width, rangeY + height / 2, 10,
                 isRight ? rangeX + width / 2 : rangeX + width / 2, rangeY + height / 2, width
             );
-            energyGrad.addColorStop(0, `rgba(${mainColor}, 0.7)`);
+            energyGrad.addColorStop(0, `rgba(${mainColor}, 0.8)`);
+            energyGrad.addColorStop(0.6, `rgba(${mainColor}, 0.3)`);
             energyGrad.addColorStop(1, `rgba(${mainColor}, 0.0)`);
             ctx.fillStyle = energyGrad; ctx.fillRect(rangeX, rangeY, width, height);
 
-        } else {
+            // Vòng tròn ma pháp huyền ảo
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.shadowColor = `rgb(${mainColor})`; ctx.shadowBlur = 15;
+            ctx.beginPath(); ctx.arc(isRight ? rangeX + width * 0.7 : rangeX + width * 0.3, rangeY + height / 2, 35, 0, Math.PI * 2); ctx.stroke();
+
+        } else if (this.heroType === "cungthu") {
+            // HIỆU ỨNG CUNG THỦ (Mũi tên năng lượng vạch sáng)
             const primaryColor = this.isP1 ? "239, 68, 68" : "59, 130, 246";
-            ctx.fillStyle = `rgba(${primaryColor}, 0.4)`; ctx.fillRect(rangeX, rangeY, width, height);
+            ctx.fillStyle = `rgba(${primaryColor}, 0.45)`; ctx.fillRect(rangeX, rangeY, width, height);
+
+            // Vệt bắn tên rực sáng
+            ctx.shadowColor = `rgb(${primaryColor})`; ctx.shadowBlur = 20;
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(isRight ? rangeX : rangeX + width, rangeY + height / 2);
+            ctx.lineTo(isRight ? rangeX + width : rangeX, rangeY + height / 2);
+            ctx.stroke();
         }
 
         ctx.restore();
@@ -418,13 +418,11 @@ class Player {
         ctx.fill();
         ctx.restore();
 
-        // HÀO QUANG SẤM SÉT BAO QUANH VÕ SĨ KHI TẤN CÔNG
+        // HIỆU ỨNG HÀO QUANG BAO QUANH KHI VÕ SĨ TẤN CÔNG
         if (this.heroType === "vosi" && this.isAttacking) {
             ctx.save();
-            ctx.shadowColor = "#38bdf8";
-            ctx.shadowBlur = 25;
-            ctx.strokeStyle = "rgba(250, 204, 21, 0.7)";
-            ctx.lineWidth = 4;
+            ctx.shadowColor = "#38bdf8"; ctx.shadowBlur = 25;
+            ctx.strokeStyle = "rgba(250, 204, 21, 0.7)"; ctx.lineWidth = 4;
             ctx.strokeRect(this.x - 6, this.y - 6, this.width + 12, this.height + 12);
             ctx.restore();
         }
@@ -539,16 +537,28 @@ window.addEventListener("keydown", e => {
     if (e.key === "d" || e.key === "D") keys.d = true;
     if ((e.key === "w" || e.key === "W") && player1.y >= canvas.height - groundHeight - player1.height) player1.velocity.y = -16;
     if (e.key === "u" || e.key === "U") { if (player1.attack()) setTimeout(() => checkHit(player1, player2, 10), 100); }
-    if (e.key === "i" || e.key === "I") { if (player1.skill(30, 200, "⚡ LÔI QUYỀN LIÊN HOÀN!", "#38bdf8")) setTimeout(() => checkHit(player1, player2, 22), 150); }
-    if (e.key === "o" || e.key === "O") { if (player1.skill(50, 300, "⚡⚡ CÚ ĐẤM SẤM SÉT!", "#facc15")) setTimeout(() => checkHit(player1, player2, 35), 180); }
+    if (e.key === "i" || e.key === "I") { 
+        let text = player1.heroType === 'vosi' ? "⚡ LÔI QUYỀN LIÊN HOÀN!" : (player1.heroType === 'kiemsi' ? "⚔️ PHONG TRẢM!" : (player1.heroType === 'phapsu' ? "🪄 HỎA CẦU THUẬT!" : "🏹 TIỄN VŨ!"));
+        if (player1.skill(30, 200, text, "#38bdf8")) setTimeout(() => checkHit(player1, player2, 22), 150); 
+    }
+    if (e.key === "o" || e.key === "O") { 
+        let text = player1.heroType === 'vosi' ? "⚡⚡ CÚ ĐẤM SẤM SÉT!" : (player1.heroType === 'kiemsi' ? "💥 LẠC DIỆP TRẢM!" : (player1.heroType === 'phapsu' ? "☄️ THIÊN HỎA BẠO KÍCH!" : "🎯 BÁCH PHÁT BÁCH TRÚNG!"));
+        if (player1.skill(50, 300, text, "#facc15")) setTimeout(() => checkHit(player1, player2, 35), 180); 
+    }
 
     // P2 CONTROLS
     if (e.key === "ArrowLeft") keys.ArrowLeft = true;
     if (e.key === "ArrowRight") keys.ArrowRight = true;
     if (e.key === "ArrowUp" && player2.y >= canvas.height - groundHeight - player2.height) player2.velocity.y = -16;
     if (e.key === "j" || e.key === "J" || e.key === "1") { if (player2.attack()) setTimeout(() => checkHit(player2, player1, 10), 100); }
-    if (e.key === "k" || e.key === "K" || e.key === "2") { if (player2.skill(30, 190, "⚔️ PHONG TRẢM!", "#3b82f6")) setTimeout(() => checkHit(player2, player1, 22), 150); }
-    if (e.key === "l" || e.key === "L" || e.key === "3") { if (player2.skill(50, 270, "💥 LẠC DIỆP TRẢM!", "#a855f7")) setTimeout(() => checkHit(player2, player1, 35), 180); }
+    if (e.key === "k" || e.key === "K" || e.key === "2") { 
+        let text = player2.heroType === 'vosi' ? "⚡ LÔI QUYỀN LIÊN HOÀN!" : (player2.heroType === 'kiemsi' ? "⚔️ PHONG TRẢM!" : (player2.heroType === 'phapsu' ? "🪄 HỎA CẦU THUẬT!" : "🏹 TIỄN VŨ!"));
+        if (player2.skill(30, 190, text, "#3b82f6")) setTimeout(() => checkHit(player2, player1, 22), 150); 
+    }
+    if (e.key === "l" || e.key === "L" || e.key === "3") { 
+        let text = player2.heroType === 'vosi' ? "⚡⚡ CÚ ĐẤM SẤM SÉT!" : (player2.heroType === 'kiemsi' ? "💥 LẠC DIỆP TRẢM!" : (player2.heroType === 'phapsu' ? "☄️ THIÊN HỎA BẠO KÍCH!" : "🎯 BÁCH PHÁT BÁCH TRÚNG!"));
+        if (player2.skill(50, 270, text, "#a855f7")) setTimeout(() => checkHit(player2, player1, 35), 180); 
+    }
 });
 
 window.addEventListener("keyup", e => {
