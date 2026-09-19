@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>4 Heroes Fighting - Character Selection & Attack Range</title>
+<title>4 Heroes Fighting - Advanced Hitbox Effects</title>
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -170,8 +170,8 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
     </div>
 
     <div class="controls-info">
-        <b>P1:</b> A/D Di chuyển · W Nhảy · U Đánh · I/O/P Chiêu<br>
-        <b>P2:</b> Mũi tên ←/→ Di chuyển · ↑ Nhảy · J/Numpad 1 Đánh · K,L,M/Numpad 2,3,4 Chiêu
+        <b>P1:</b> A/D Di chuyển · W Nhảy · U Đánh · I/O Chiêu<br>
+        <b>P2:</b> Mũi tên ←/→ Di chuyển · ↑ Nhảy · J/Numpad 1 Đánh · K/L/Numpad 2,3 Chiêu
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -316,27 +316,56 @@ class Player {
         ctx.restore();
     }
 
-    // --- BỔ SUNG: VẼ KHUNG TẦM ĐÁNH / HIỆU ỨNG CHIÊU THỨC ---
+    // --- HIỆU ỨNG HITBOX PHÁT SÁNG NÂNG CAO ---
     drawAttackRange() {
         if (!this.isAttacking) return;
 
-        const rangeX = this.facing === "right" ? this.x + this.width : this.x - this.attackBox.width;
+        const isRight = this.facing === "right";
+        const rangeX = isRight ? this.x + this.width : this.x - this.attackBox.width;
         const rangeY = this.y + 25;
+        const width = this.attackBox.width;
+        const height = this.attackBox.height;
 
         ctx.save();
-        // Chọn màu khung theo P1 hoặc P2
-        if (this.isP1) {
-            ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
-            ctx.strokeStyle = "#ef4444";
-        } else {
-            ctx.fillStyle = "rgba(59, 130, 246, 0.25)";
-            ctx.strokeStyle = "#3b82f6";
-        }
 
+        const primaryColor = this.isP1 ? "239, 68, 68" : "59, 130, 246";
+        const highlightColor = this.isP1 ? "#fca5a5" : "#93c5fd";
+
+        // Hiệu ứng tỏa sáng
+        ctx.shadowColor = `rgba(${primaryColor}, 0.8)`;
+        ctx.shadowBlur = 15;
+
+        // Gradient nền chuyển màu mờ dần
+        let grad = ctx.createLinearGradient(
+            isRight ? rangeX : rangeX + width, rangeY,
+            isRight ? rangeX + width : rangeX, rangeY
+        );
+        grad.addColorStop(0, `rgba(${primaryColor}, 0.5)`);
+        grad.addColorStop(0.7, `rgba(${primaryColor}, 0.2)`);
+        grad.addColorStop(1, `rgba(${primaryColor}, 0.0)`);
+
+        ctx.fillStyle = grad;
+        ctx.fillRect(rangeX, rangeY, width, height);
+
+        // Đường viền nét đứt
+        ctx.strokeStyle = `rgba(${primaryColor}, 0.9)`;
         ctx.lineWidth = 2;
-        // Vẽ vùng bị ảnh hưởng (Hitbox)
-        ctx.fillRect(rangeX, rangeY, this.attackBox.width, this.attackBox.height);
-        ctx.strokeRect(rangeX, rangeY, this.attackBox.width, this.attackBox.height);
+        ctx.setLineDash([8, 4]);
+        ctx.strokeRect(rangeX, rangeY, width, height);
+        ctx.setLineDash([]);
+
+        // Vệt chém cong (Arc Slash)
+        ctx.beginPath();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = highlightColor;
+        
+        let startAngle = isRight ? -Math.PI / 3 : Math.PI * 2 / 3;
+        let endAngle = isRight ? Math.PI / 3 : Math.PI * 4 / 3;
+        let centerX = isRight ? rangeX : rangeX + width;
+        let centerY = rangeY + height / 2;
+
+        ctx.arc(centerX, centerY, width * 0.85, startAngle, endAngle);
+        ctx.stroke();
 
         ctx.restore();
     }
@@ -355,7 +384,6 @@ class Player {
             this.drawHeroPixel();
         }
 
-        // Gọi hàm vẽ tầm đánh khi tung chiêu
         this.drawAttackRange();
     }
 
