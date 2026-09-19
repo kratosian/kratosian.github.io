@@ -130,7 +130,14 @@
 
     // Load Sprite Sheet Nhân Vật
     const spriteSheet = new Image();
-    spriteSheet.src = 'hero.png';
+    // Load Sprite Sheet Nhân Vật
+const spriteSheet = new Image();
+let isImageLoaded = false;
+spriteSheet.src = 'hero.png';
+spriteSheet.onload = () => { isImageLoaded = true; };
+spriteSheet.onerror = () => {
+  spriteSheet.src = '3c0ec9cc-f01d-4f87-9ad4-8cf2a52739d5.jpg';
+};
 
     class Player {
       constructor({ x, y, facing, hpId, mpId, spriteCrop }) {
