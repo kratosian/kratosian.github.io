@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>4 Heroes Fighting - Clean FX Edition</title>
+<title>4 Heroes Fighting - Fixed MP Logic</title>
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -486,7 +486,8 @@ class Player {
         this.isAttacking = true; this.hitDone = false;
         this.attackTimer = this.heroType === "kiemsi" ? 18 : 15;
         this.attackBox.width = this.heroType === "phapsu" ? 140 : (this.heroType === "kiemsi" ? 120 : 90);
-        this.mp = Math.min(100, this.mp + 10); this.updateUI();
+        // Bỏ dòng cộng MP tại đây, chuyển sang checkHit
+        this.updateUI();
         return true;
     }
 
@@ -502,7 +503,7 @@ class Player {
 
     takeDamage(amount) {
         this.hp = Math.max(0, this.hp - amount);
-        this.mp = Math.min(100, this.mp + 12);
+        this.mp = Math.min(100, this.mp + 12); // Bị đánh vẫn được cộng MP
         this.hurtTimer = 16;
         this.updateUI();
         this.velocity.x = this.facing === "right" ? -6 : 6;
@@ -525,8 +526,15 @@ function checkHit(attacker, defender, damage) {
 
     if (attackX < defender.x + defender.width && attackX + attacker.attackBox.width > defender.x &&
         attacker.y < defender.y + defender.height && attacker.y + attacker.height > defender.y) {
+        
         attacker.hitDone = true;
+        
+        // CHỈ CỘNG 10 MP KHI ĐÁNH THƯỜNG TRÚNG ĐỊCH
+        attacker.mp = Math.min(100, attacker.mp + 10);
+        attacker.updateUI();
+
         defender.takeDamage(damage);
+        
         if (player1.hp <= 0 || player2.hp <= 0) {
             gameOver = true;
             document.getElementById("winner-text").innerText = player1.hp <= 0 ? "P2 THẮNG!" : "P1 THẮNG!";
