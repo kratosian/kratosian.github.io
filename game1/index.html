@@ -1,327 +1,3232 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kratos 1v1 Fighting</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      width: 100%; height: 100%; overflow: hidden;
-      background: #0f172a;
-      font-family: system-ui, -apple-system, sans-serif;
-      user-select: none;
-    }
-    .game-container { position: relative; width: 100vw; height: 100vh; }
-    canvas { display: block; width: 100%; height: 100%; background: #1e293b; }
-    
-    .ui-layer {
-      position: absolute; top: 20px; left: 40px; right: 40px;
-      display: flex; justify-content: space-between; align-items: flex-start;
-      pointer-events: none; z-index: 10;
-    }
-    .status-group { width: 38%; max-width: 450px; }
-    .bar-container {
-      width: 100%; height: 24px;
-      background: rgba(51, 65, 85, 0.8);
-      border: 2px solid #ffffff; border-radius: 6px;
-      overflow: hidden; margin-bottom: 6px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-    }
-    .mp-container { height: 14px; border-color: #94a3b8; }
-    .health-bar { height: 100%; width: 100%; transition: width 0.1s ease; }
-    .mana-bar { height: 100%; width: 0%; transition: width 0.1s ease; background: #a855f7; }
-    #p1-hp { background: #ef4444; }
-    #p2-hp { background: #3b82f6; float: right; }
-    #p2-mp { float: right; }
-    
-    .vs-logo {
-      font-size: 28px; font-weight: 900; color: #facc15;
-      text-shadow: 0 0 10px rgba(250, 204, 21, 0.5); margin-top: 5px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    .controls-info {
-      position: absolute; bottom: 15px; left: 50%;
-      transform: translateX(-50%); font-size: 13px;
-      color: rgba(255, 255, 255, 0.7); text-align: center;
-      line-height: 1.5; background: rgba(15, 23, 42, 0.6);
-      padding: 8px 18px; border-radius: 20px; backdrop-filter: blur(4px);
-      z-index: 10; pointer-events: none;
-    }
+<title>Kratos 1v1 Fighting - Ultimate</title>
 
-    #game-over {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(15, 23, 42, 0.95);
-      padding: 40px 60px; border-radius: 16px;
-      border: 2px solid #38bdf8; text-align: center;
-      display: none; z-index: 20;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7);
-    }
-    button {
-      margin-top: 20px; padding: 12px 28px;
-      background: #38bdf8; border: none; color: #0f172a;
-      font-size: 16px; font-weight: bold; border-radius: 8px;
-      cursor: pointer; transition: transform 0.1s;
-    }
-    button:hover { transform: scale(1.05); }
-  </style>
+<style>
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #263653 0%,
+            #0f172a 70%
+        );
+
+    font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    user-select: none;
+}
+
+
+/* =========================================================
+   GAME
+========================================================= */
+
+.game-container {
+
+    position: relative;
+
+    width: 100vw;
+    height: 100vh;
+
+    overflow: hidden;
+}
+
+
+canvas {
+
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    background:
+        linear-gradient(
+            to bottom,
+            #111827 0%,
+            #172554 55%,
+            #0f172a 100%
+        );
+}
+
+
+/* =========================================================
+   UI
+========================================================= */
+
+.ui-layer {
+
+    position: absolute;
+
+    top: 20px;
+    left: 35px;
+    right: 35px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    z-index: 10;
+
+    pointer-events: none;
+}
+
+
+.status-group {
+
+    width: 38%;
+    max-width: 480px;
+}
+
+
+.player-name {
+
+    font-size: 18px;
+    font-weight: 900;
+
+    margin-bottom: 7px;
+
+    text-shadow:
+        0 2px 5px #000;
+}
+
+
+.p1-name {
+    color: #ef4444;
+}
+
+
+.p2-name {
+
+    color: #60a5fa;
+
+    text-align: right;
+}
+
+
+/* =========================================================
+   BARS
+========================================================= */
+
+.bar-container {
+
+    width: 100%;
+    height: 25px;
+
+    margin-bottom: 6px;
+
+    background:
+        rgba(15, 23, 42, 0.8);
+
+    border:
+        2px solid white;
+
+    border-radius: 7px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 5px 15px rgba(0,0,0,0.45);
+}
+
+
+.health-bar {
+
+    height: 100%;
+    width: 100%;
+
+    transition:
+        width 0.15s ease;
+}
+
+
+#p1-hp {
+
+    background:
+        linear-gradient(
+            90deg,
+            #991b1b,
+            #ef4444,
+            #f87171
+        );
+}
+
+
+#p2-hp {
+
+    width: 100%;
+
+    float: right;
+
+    background:
+        linear-gradient(
+            90deg,
+            #60a5fa,
+            #3b82f6,
+            #1d4ed8
+        );
+}
+
+
+.mp-container {
+
+    height: 13px;
+
+    border-color: #64748b;
+}
+
+
+.mana-bar {
+
+    height: 100%;
+
+    width: 0%;
+
+    background:
+        linear-gradient(
+            90deg,
+            #581c87,
+            #a855f7,
+            #d8b4fe
+        );
+
+    transition:
+        width 0.15s ease;
+}
+
+
+#p2-mp {
+
+    float: right;
+}
+
+
+/* =========================================================
+   VS
+========================================================= */
+
+.vs-logo {
+
+    margin-top: 8px;
+
+    font-size: 32px;
+    font-weight: 1000;
+
+    color: #facc15;
+
+    text-shadow:
+        0 0 8px #facc15,
+        0 0 20px rgba(250,204,21,0.5);
+}
+
+
+/* =========================================================
+   CONTROLS
+========================================================= */
+
+.controls-info {
+
+    position: absolute;
+
+    bottom: 12px;
+    left: 50%;
+
+    transform:
+        translateX(-50%);
+
+    padding:
+        8px 18px;
+
+    border-radius: 20px;
+
+    background:
+        rgba(15,23,42,0.75);
+
+    border:
+        1px solid rgba(255,255,255,0.15);
+
+    color:
+        rgba(255,255,255,0.75);
+
+    font-size: 12px;
+
+    line-height: 1.5;
+
+    text-align: center;
+
+    z-index: 10;
+
+    pointer-events: none;
+
+    backdrop-filter:
+        blur(8px);
+}
+
+
+/* =========================================================
+   GAME OVER
+========================================================= */
+
+#game-over {
+
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    transform:
+        translate(-50%, -50%);
+
+    min-width: 300px;
+
+    padding:
+        40px 55px;
+
+    text-align: center;
+
+    background:
+        rgba(2,6,23,0.95);
+
+    border:
+        2px solid #facc15;
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 20px 60px rgba(0,0,0,0.75);
+
+    display: none;
+
+    z-index: 50;
+}
+
+
+#winner-text {
+
+    color: #facc15;
+
+    font-size: 38px;
+
+    text-shadow:
+        0 0 15px rgba(250,204,21,0.6);
+}
+
+
+button {
+
+    margin-top: 20px;
+
+    padding:
+        12px 30px;
+
+    border: none;
+
+    border-radius: 9px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #facc15,
+            #f59e0b
+        );
+
+    color: #111827;
+
+    font-size: 16px;
+
+    font-weight: 900;
+
+    cursor: pointer;
+
+    transition:
+        transform .15s,
+        box-shadow .15s;
+}
+
+
+button:hover {
+
+    transform:
+        scale(1.06);
+
+    box-shadow:
+        0 0 20px rgba(250,204,21,0.5);
+}
+
+
+/* =========================================================
+   SKILL MESSAGE
+========================================================= */
+
+#skill-message {
+
+    position: absolute;
+
+    left: 50%;
+    top: 40%;
+
+    transform:
+        translate(-50%, -50%);
+
+    font-size: 38px;
+
+    font-weight: 1000;
+
+    color: white;
+
+    text-shadow:
+        0 0 10px currentColor,
+        0 0 25px currentColor;
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    z-index: 30;
+}
+
+
+</style>
 </head>
+
+
 <body>
 
-  <div class="game-container">
+
+<div class="game-container">
+
+
+    <!-- =====================================================
+         TOP UI
+    ====================================================== -->
+
     <div class="ui-layer">
-      <div class="status-group">
-        <div style="font-weight:bold; font-size: 18px; margin-bottom:6px; color:#ef4444; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">P1: VÕ SĨ</div>
-        <div class="bar-container"><div id="p1-hp" class="health-bar"></div></div>
-        <div class="bar-container mp-container"><div id="p1-mp" class="mana-bar"></div></div>
-      </div>
 
-      <div class="vs-logo">VS</div>
 
-      <div class="status-group">
-        <div style="font-weight:bold; font-size: 18px; margin-bottom:6px; color:#3b82f6; text-align:right; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">P2: KIẾM SĨ</div>
-        <div class="bar-container"><div id="p2-hp" class="health-bar"></div></div>
-        <div class="bar-container mp-container"><div id="p2-mp" class="mana-bar"></div></div>
-      </div>
+        <!-- P1 -->
+
+        <div class="status-group">
+
+            <div class="player-name p1-name">
+                P1: VÕ SĨ
+            </div>
+
+            <div class="bar-container">
+                <div
+                    id="p1-hp"
+                    class="health-bar">
+                </div>
+            </div>
+
+            <div class="bar-container mp-container">
+                <div
+                    id="p1-mp"
+                    class="mana-bar">
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- VS -->
+
+        <div class="vs-logo">
+            VS
+        </div>
+
+
+        <!-- P2 -->
+
+        <div class="status-group">
+
+            <div class="player-name p2-name">
+                P2: KIẾM SĨ
+            </div>
+
+            <div class="bar-container">
+
+                <div
+                    id="p2-hp"
+                    class="health-bar">
+                </div>
+
+            </div>
+
+            <div class="bar-container mp-container">
+
+                <div
+                    id="p2-mp"
+                    class="mana-bar">
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
+
+
+    <!-- =====================================================
+         SKILL TEXT
+    ====================================================== -->
+
+    <div id="skill-message"></div>
+
+
+    <!-- =====================================================
+         GAME OVER
+    ====================================================== -->
 
     <div id="game-over">
-      <h1 id="winner-text" style="color: #facc15; font-size: 36px; margin-bottom: 10px;">P1 THẮNG!</h1>
-      <button onclick="resetGame()">CHƠI LẠI</button>
+
+        <h1 id="winner-text">
+            P1 THẮNG!
+        </h1>
+
+        <button onclick="resetGame()">
+            CHƠI LẠI
+        </button>
+
     </div>
+
+
+    <!-- =====================================================
+         CONTROLS
+    ====================================================== -->
 
     <div class="controls-info">
-      <b>P1:</b> A/D (Di chuyển), W (Nhảy) | U (Tấn công - Cộng MP), I/O/P (Chiêu)<br>
-      <b>P2:</b> Phím mũi tên (Di chuyển/Nhảy) | Num 1 (Tấn công - Cộng MP), Num 2/3/4 (Chiêu)
+
+        <b>P1:</b>
+        A / D di chuyển ·
+        W nhảy ·
+        U đánh ·
+        I / O / P chiêu
+
+        <br>
+
+        <b>P2:</b>
+        ← / → di chuyển ·
+        ↑ nhảy ·
+        1 đánh ·
+        2 / 3 / 4 chiêu
+
     </div>
 
+
     <canvas id="gameCanvas"></canvas>
-  </div>
 
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
 
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+</div>
 
-    const gravity = 0.8;
 
-    // Tự động tìm ảnh theo thứ tự ưu tiên
-    const imgP1 = new Image();
-    let p1Loaded = false;
-    const p1Sources = ['p1.png', 'p1.jpg', 'hero.jpg', 'hero.png', 'https://raw.githubusercontent.com/taniarascia/sandbox/master/gh-pages/sprites/ken.png'];
-    let p1Index = 0;
+
+<script>
+
+
+/* =========================================================
+   CANVAS
+========================================================= */
+
+const canvas =
+    document.getElementById("gameCanvas");
+
+const ctx =
+    canvas.getContext("2d");
+
+
+function resizeCanvas() {
+
+    canvas.width =
+        window.innerWidth;
+
+    canvas.height =
+        window.innerHeight;
+}
+
+
+resizeCanvas();
+
+window.addEventListener(
+    "resize",
+    resizeCanvas
+);
+
+
+/* =========================================================
+   GAME SETTINGS
+========================================================= */
+
+const gravity = 0.8;
+
+const groundHeight = 60;
+
+const WALK_SPEED = 6;
+
+const JUMP_POWER = 16;
+
+
+/* =========================================================
+   IMAGE SYSTEM
+========================================================= */
+
+function loadImage(src) {
+
+    const img =
+        new Image();
+
+    img.src = src;
+
+    return img;
+}
+
+
+/*
+    P1
+
+    Nếu có các file animation:
     
-    function loadP1() {
-      if (p1Index < p1Sources.length) {
-        imgP1.src = p1Sources[p1Index++];
-      }
-    }
-    imgP1.onload = () => { p1Loaded = true; };
-    imgP1.onerror = () => { loadP1(); };
-    loadP1();
+    assets/p1/idle.png
+    assets/p1/walk.png
+    assets/p1/attack.png
+    assets/p1/skill1.png
+    assets/p1/skill2.png
+    assets/p1/skill3.png
+    assets/p1/hurt.png
 
-    const imgP2 = new Image();
-    let p2Loaded = false;
-    const p2Sources = ['p2.png', 'p2.jpg', 'hero.jpg', 'hero.png', 'https://raw.githubusercontent.com/taniarascia/sandbox/master/gh-pages/sprites/ryu.png'];
-    let p2Index = 0;
+    game sẽ dùng chúng.
 
-    function loadP2() {
-      if (p2Index < p2Sources.length) {
-        imgP2.src = p2Sources[p2Index++];
-      }
-    }
-    imgP2.onload = () => { p2Loaded = true; };
-    imgP2.onerror = () => { loadP2(); };
-    loadP2();
+    Nếu chưa có:
+    game dùng p1.png làm ảnh dự phòng.
+*/
 
-    class Player {
-      constructor({ x, facing, hpId, mpId, color, imgObj, isP1 }) {
+
+const p1Fallback =
+    loadImage("p1.png");
+
+
+const p1Images = {
+
+    idle:
+        loadImage(
+            "assets/p1/idle.png"
+        ),
+
+    walk:
+        loadImage(
+            "assets/p1/walk.png"
+        ),
+
+    attack:
+        loadImage(
+            "assets/p1/attack.png"
+        ),
+
+    skill1:
+        loadImage(
+            "assets/p1/skill1.png"
+        ),
+
+    skill2:
+        loadImage(
+            "assets/p1/skill2.png"
+        ),
+
+    skill3:
+        loadImage(
+            "assets/p1/skill3.png"
+        ),
+
+    hurt:
+        loadImage(
+            "assets/p1/hurt.png"
+        )
+};
+
+
+/* =========================================================
+   P2
+========================================================= */
+
+const p2Fallback =
+    loadImage("p2.png");
+
+
+const p2Images = {
+
+    idle:
+        loadImage(
+            "assets/p2/idle.png"
+        ),
+
+    walk:
+        loadImage(
+            "assets/p2/walk.png"
+        ),
+
+    attack:
+        loadImage(
+            "assets/p2/attack.png"
+        ),
+
+    skill1:
+        loadImage(
+            "assets/p2/skill1.png"
+        ),
+
+    skill2:
+        loadImage(
+            "assets/p2/skill2.png"
+        ),
+
+    skill3:
+        loadImage(
+            "assets/p2/skill3.png"
+        ),
+
+    hurt:
+        loadImage(
+            "assets/p2/hurt.png"
+        )
+};
+
+
+/* =========================================================
+   PLAYER CLASS
+========================================================= */
+
+class Player {
+
+
+    constructor({
+
+        x,
+        facing,
+
+        hpId,
+        mpId,
+
+        color,
+
+        images,
+        fallback,
+
+        name
+
+    }) {
+
+
         this.x = x;
+
         this.y = 100;
-        this.width = 80;
-        this.height = 130;
-        this.velocity = { x: 0, y: 0 };
-        this.facing = facing;
+
+
+        this.width = 105;
+
+        this.height = 160;
+
+
+        this.velocity = {
+
+            x: 0,
+            y: 0
+
+        };
+
+
+        this.facing =
+            facing;
+
+
         this.hp = 100;
+
         this.mp = 0;
-        this.hpId = hpId;
-        this.mpId = mpId;
-        this.color = color;
-        this.imgObj = imgObj;
-        this.isP1 = isP1;
-        this.isAttacking = false;
-        this.attackBox = { x: 0, y: 0, width: 80, height: 50 };
-      }
 
-      draw() {
-        const isLoaded = this.isP1 ? p1Loaded : p2Loaded;
 
-        if (isLoaded) {
-          ctx.save();
-          if (this.facing === 'left') {
-            ctx.translate(this.x + this.width, this.y);
-            ctx.scale(-1, 1);
-            ctx.drawImage(this.imgObj, 0, 0, this.width, this.height);
-          } else {
-            ctx.drawImage(this.imgObj, this.x, this.y, this.width, this.height);
-          }
-          ctx.restore();
+        this.hpId =
+            hpId;
+
+        this.mpId =
+            mpId;
+
+
+        this.color =
+            color;
+
+
+        this.images =
+            images;
+
+
+        this.fallback =
+            fallback;
+
+
+        this.name =
+            name;
+
+
+        /* ==========================
+           STATES
+        ========================== */
+
+        this.state =
+            "idle";
+
+
+        this.previousState =
+            "idle";
+
+
+        /* ==========================
+           ATTACK
+        ========================== */
+
+        this.isAttacking =
+            false;
+
+
+        this.attackTimer =
+            0;
+
+
+        this.attackDuration =
+            16;
+
+
+        this.hitDone =
+            false;
+
+
+        this.attackBox = {
+
+            width: 80,
+
+            height: 55,
+
+            y: 45
+
+        };
+
+
+        /* ==========================
+           HURT
+        ========================== */
+
+        this.hurtTimer =
+            0;
+
+
+        /* ==========================
+           COOLDOWN
+        ========================== */
+
+        this.skillCooldown =
+            0;
+
+
+        /* ==========================
+           EFFECT
+        ========================== */
+
+        this.effectTimer =
+            0;
+
+        this.effectColor =
+            "#ffffff";
+
+        this.effectText =
+            "";
+
+
+        /* ==========================
+           INVINCIBILITY
+        ========================== */
+
+        this.invincible =
+            false;
+
+    }
+
+
+    /* =====================================================
+       CHANGE STATE
+    ===================================================== */
+
+    setState(state) {
+
+        if (
+            this.state !== state
+        ) {
+
+            this.previousState =
+                this.state;
+
+            this.state =
+                state;
+        }
+    }
+
+
+    /* =====================================================
+       GET IMAGE
+    ===================================================== */
+
+    getImage() {
+
+        const image =
+            this.images[
+                this.state
+            ];
+
+
+        /*
+            Nếu ảnh animation chưa tồn tại
+            thì dùng ảnh fallback.
+        */
+
+        if (
+            image &&
+            image.complete &&
+            image.naturalWidth > 0
+        ) {
+
+            return image;
+        }
+
+
+        if (
+            this.fallback &&
+            this.fallback.complete &&
+            this.fallback.naturalWidth > 0
+        ) {
+
+            return this.fallback;
+        }
+
+
+        return null;
+    }
+
+
+    /* =====================================================
+       DRAW
+    ===================================================== */
+
+    draw() {
+
+
+        const image =
+            this.getImage();
+
+
+        /* =================================================
+           SHADOW
+        ================================================= */
+
+        ctx.save();
+
+
+        ctx.fillStyle =
+            "rgba(0,0,0,0.35)";
+
+
+        ctx.beginPath();
+
+
+        ctx.ellipse(
+
+            this.x +
+            this.width / 2,
+
+            canvas.height -
+            groundHeight +
+            4,
+
+            this.width * 0.45,
+
+            10,
+
+            0,
+
+            0,
+
+            Math.PI * 2
+
+        );
+
+
+        ctx.fill();
+
+
+        ctx.restore();
+
+
+        /* =================================================
+           CHARACTER
+        ================================================= */
+
+        if (image) {
+
+
+            ctx.save();
+
+
+            /*
+                FLASH KHI BỊ ĐÁNH
+            */
+
+            if (
+                this.hurtTimer > 0 &&
+                this.hurtTimer % 4 < 2
+            ) {
+
+                ctx.globalAlpha =
+                    0.6;
+            }
+
+
+            /*
+                LẬT NHÂN VẬT
+            */
+
+            if (
+                this.facing === "left"
+            ) {
+
+                ctx.translate(
+
+                    this.x +
+                    this.width,
+
+                    this.y
+
+                );
+
+                ctx.scale(
+                    -1,
+                    1
+                );
+
+
+                ctx.drawImage(
+
+                    image,
+
+                    0,
+                    0,
+
+                    this.width,
+                    this.height
+
+                );
+
+            } else {
+
+                ctx.drawImage(
+
+                    image,
+
+                    this.x,
+                    this.y,
+
+                    this.width,
+                    this.height
+
+                );
+
+            }
+
+
+            ctx.restore();
+
+
         } else {
-          ctx.fillStyle = this.color;
-          ctx.fillRect(this.x, this.y, this.width, this.height);
+
+
+            /*
+                FALLBACK KHI CHƯA CÓ ẢNH
+            */
+
+            this.drawPlaceholder();
+
         }
 
-        if (this.isAttacking) {
-          ctx.fillStyle = 'rgba(255, 230, 0, 0.6)';
-          const boxX = this.facing === 'right' ? this.x + this.width : this.x - this.attackBox.width;
-          ctx.fillRect(boxX, this.y + 35, this.attackBox.width, this.attackBox.height);
+
+        /* =================================================
+           ATTACK EFFECT
+        ================================================= */
+
+        if (
+            this.isAttacking
+        ) {
+
+            this.drawAttackEffect();
+
         }
-      }
 
-      update() {
-        const groundY = canvas.height - 60;
 
-        this.x += this.velocity.x;
-        this.y += this.velocity.y;
+        /* =================================================
+           SKILL EFFECT
+        ================================================= */
 
-        if (this.y + this.height + this.velocity.y >= groundY) {
-          this.velocity.y = 0;
-          this.y = groundY - this.height;
+        if (
+            this.effectTimer > 0
+        ) {
+
+            this.drawSkillEffect();
+
+        }
+
+
+        /* =================================================
+           HITBOX DEBUG
+        ================================================= */
+
+        /*
+            Muốn xem hitbox thì bỏ // ở dưới.
+
+            ctx.strokeStyle = "red";
+            ctx.strokeRect(...);
+        */
+
+    }
+
+
+    /* =====================================================
+       PLACEHOLDER
+    ===================================================== */
+
+    drawPlaceholder() {
+
+
+        ctx.save();
+
+
+        /*
+            BODY
+        */
+
+        ctx.fillStyle =
+            this.color;
+
+
+        ctx.fillRect(
+
+            this.x + 20,
+
+            this.y + 35,
+
+            this.width - 40,
+
+            this.height - 35
+
+        );
+
+
+        /*
+            HEAD
+        */
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+
+            this.x +
+            this.width / 2,
+
+            this.y + 25,
+
+            22,
+
+            0,
+
+            Math.PI * 2
+
+        );
+
+
+        ctx.fill();
+
+
+        ctx.restore();
+
+    }
+
+
+    /* =====================================================
+       ATTACK EFFECT
+    ===================================================== */
+
+    drawAttackEffect() {
+
+
+        const direction =
+            this.facing === "right"
+                ? 1
+                : -1;
+
+
+        const startX =
+            this.facing === "right"
+
+                ? this.x +
+                  this.width
+
+                : this.x;
+
+
+        ctx.save();
+
+
+        ctx.strokeStyle =
+            this.isAttacking &&
+            this.state === "attack"
+
+            ? "#ffffff"
+
+            : "#ff3333";
+
+
+        ctx.lineWidth =
+            7;
+
+
+        ctx.shadowColor =
+            ctx.strokeStyle;
+
+
+        ctx.shadowBlur =
+            18;
+
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+
+            startX,
+
+            this.y + 65,
+
+            40,
+
+            direction > 0
+                ? -0.8
+                : Math.PI + 0.8,
+
+            direction > 0
+                ? 0.8
+                : Math.PI - 0.8
+
+        );
+
+
+        ctx.stroke();
+
+
+        ctx.restore();
+
+    }
+
+
+    /* =====================================================
+       SKILL EFFECT
+    ===================================================== */
+
+    drawSkillEffect() {
+
+
+        const direction =
+            this.facing === "right"
+                ? 1
+                : -1;
+
+
+        const centerX =
+            this.x +
+            this.width / 2;
+
+
+        ctx.save();
+
+
+        ctx.globalAlpha =
+            Math.min(
+                1,
+                this.effectTimer / 15
+            );
+
+
+        ctx.strokeStyle =
+            this.effectColor;
+
+
+        ctx.fillStyle =
+            this.effectColor;
+
+
+        ctx.shadowColor =
+            this.effectColor;
+
+
+        ctx.shadowBlur =
+            25;
+
+
+        ctx.lineWidth =
+            8;
+
+
+        /*
+            vòng năng lượng
+        */
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+
+            centerX,
+
+            this.y + 70,
+
+            55 +
+            (30 -
+            this.effectTimer),
+
+            0,
+
+            Math.PI * 2
+
+        );
+
+
+        ctx.stroke();
+
+
+        /*
+            tia
+        */
+
+        for (
+            let i = 0;
+            i < 5;
+            i++
+        ) {
+
+
+            const angle =
+                (
+                    i / 5
+                ) *
+                Math.PI * 2;
+
+
+            const x1 =
+                centerX +
+                Math.cos(angle) *
+                35;
+
+
+            const y1 =
+                this.y +
+                70 +
+                Math.sin(angle) *
+                35;
+
+
+            const x2 =
+                centerX +
+                Math.cos(angle) *
+                90 *
+                direction;
+
+
+            const y2 =
+                this.y +
+                70 +
+                Math.sin(angle) *
+                90;
+
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                x1,
+                y1
+            );
+
+            ctx.lineTo(
+                x2,
+                y2
+            );
+
+            ctx.stroke();
+
+        }
+
+
+        /*
+            chữ
+        */
+
+        ctx.font =
+            "900 22px Arial";
+
+
+        ctx.textAlign =
+            "center";
+
+
+        ctx.fillText(
+
+            this.effectText,
+
+            centerX,
+
+            this.y - 20
+
+        );
+
+
+        ctx.restore();
+
+    }
+
+
+    /* =====================================================
+       UPDATE
+    ===================================================== */
+
+    update() {
+
+
+        /* =================================================
+           COOLDOWN
+        ================================================= */
+
+        if (
+            this.skillCooldown > 0
+        ) {
+
+            this.skillCooldown--;
+        }
+
+
+        /* =================================================
+           EFFECT
+        ================================================= */
+
+        if (
+            this.effectTimer > 0
+        ) {
+
+            this.effectTimer--;
+
+        }
+
+
+        /* =================================================
+           HURT
+        ================================================= */
+
+        if (
+            this.hurtTimer > 0
+        ) {
+
+            this.hurtTimer--;
+
+        }
+
+
+        /* =================================================
+           ATTACK
+        ================================================= */
+
+        if (
+            this.attackTimer > 0
+        ) {
+
+            this.attackTimer--;
+
+
+            if (
+                this.attackTimer <= 0
+            ) {
+
+                this.isAttacking =
+                    false;
+
+                this.hitDone =
+                    false;
+
+                this.setState(
+                    "idle"
+                );
+            }
+        }
+
+
+        /* =================================================
+           PHYSICS
+        ================================================= */
+
+        this.x +=
+            this.velocity.x;
+
+
+        this.y +=
+            this.velocity.y;
+
+
+        const groundY =
+            canvas.height -
+            groundHeight;
+
+
+        /*
+            GRAVITY
+        */
+
+        if (
+            this.y +
+            this.height +
+            this.velocity.y
+            >= groundY
+        ) {
+
+            this.velocity.y =
+                0;
+
+            this.y =
+                groundY -
+                this.height;
+
         } else {
-          this.velocity.y += gravity;
+
+            this.velocity.y +=
+                gravity;
+
         }
 
-        if (this.x < 0) this.x = 0;
-        if (this.x + this.width > canvas.width) this.x = canvas.width - this.width;
+
+        /* =================================================
+           MAP LIMIT
+        ================================================= */
+
+        if (
+            this.x < 0
+        ) {
+
+            this.x = 0;
+        }
+
+
+        if (
+            this.x +
+            this.width >
+            canvas.width
+        ) {
+
+            this.x =
+                canvas.width -
+                this.width;
+        }
+
+
+        /* =================================================
+           AUTOMATIC STATE
+        ================================================= */
+
+        if (
+            !this.isAttacking &&
+            this.hurtTimer <= 0
+        ) {
+
+
+            if (
+                Math.abs(
+                    this.velocity.x
+                ) > 0
+            ) {
+
+                this.setState(
+                    "walk"
+                );
+
+            } else {
+
+                this.setState(
+                    "idle"
+                );
+            }
+
+        }
+
+
+        if (
+            this.hurtTimer > 0
+        ) {
+
+            this.setState(
+                "hurt"
+            );
+        }
+
+
+        /* =================================================
+           DRAW
+        ================================================= */
 
         this.draw();
-      }
 
-      attack(boxWidth = 80, costMP = 0) {
-        if (this.isAttacking || this.mp < costMP) return false;
-        this.mp -= costMP;
-        this.updateUI();
-        this.isAttacking = true;
-        this.attackBox.width = boxWidth;
-        setTimeout(() => { this.isAttacking = false; }, 200);
-        return true;
-      }
-
-      takeDamage(amount) {
-        this.hp = Math.max(0, this.hp - amount);
-        this.mp = Math.min(100, this.mp + 10);
-        this.updateUI();
-      }
-
-      updateUI() {
-        document.getElementById(this.hpId).style.width = this.hp + '%';
-        document.getElementById(this.mpId).style.width = this.mp + '%';
-      }
     }
 
-    const player1 = new Player({ 
-      x: canvas.width * 0.2, 
-      facing: 'right', 
-      hpId: 'p1-hp', 
-      mpId: 'p1-mp', 
-      color: '#ef4444',
-      imgObj: imgP1,
-      isP1: true
+
+    /* =====================================================
+       NORMAL ATTACK
+    ===================================================== */
+
+    attack() {
+
+
+        if (
+            this.isAttacking ||
+            this.hp <= 0
+        ) {
+
+            return false;
+        }
+
+
+        this.isAttacking =
+            true;
+
+
+        this.hitDone =
+            false;
+
+
+        this.attackTimer =
+            this.attackDuration;
+
+
+        this.attackBox.width =
+            85;
+
+
+        this.setState(
+            "attack"
+        );
+
+
+        /*
+            Đánh thường
+            cộng MP
+        */
+
+        this.mp =
+            Math.min(
+                100,
+                this.mp + 10
+            );
+
+
+        this.updateUI();
+
+
+        return true;
+
+    }
+
+
+    /* =====================================================
+       SKILL
+    ===================================================== */
+
+    skill({
+
+        number,
+
+        damage,
+
+        cost,
+
+        range,
+
+        cooldown,
+
+        text,
+
+        color
+
+    }) {
+
+
+        if (
+            this.isAttacking ||
+            this.hp <= 0
+        ) {
+
+            return false;
+        }
+
+
+        /*
+            Không đủ MP
+        */
+
+        if (
+            this.mp < cost
+        ) {
+
+            showMessage(
+                "CHƯA ĐỦ MP!",
+                "#a855f7"
+            );
+
+            return false;
+        }
+
+
+        /*
+            Cooldown
+        */
+
+        if (
+            this.skillCooldown > 0
+        ) {
+
+            showMessage(
+                "ĐANG HỒI CHIÊU!",
+                "#facc15"
+            );
+
+            return false;
+        }
+
+
+        /*
+            Trừ MP
+        */
+
+        this.mp -=
+            cost;
+
+
+        this.updateUI();
+
+
+        /*
+            Attack
+        */
+
+        this.isAttacking =
+            true;
+
+
+        this.hitDone =
+            false;
+
+
+        this.attackTimer =
+            28;
+
+
+        this.attackBox.width =
+            range;
+
+
+        /*
+            animation
+        */
+
+        this.setState(
+            "skill" +
+            number
+        );
+
+
+        /*
+            cooldown
+        */
+
+        this.skillCooldown =
+            cooldown;
+
+
+        /*
+            effect
+        */
+
+        this.effectTimer =
+            30;
+
+
+        this.effectText =
+            text;
+
+
+        this.effectColor =
+            color;
+
+
+        showMessage(
+            text,
+            color
+        );
+
+
+        return true;
+
+    }
+
+
+    /* =====================================================
+       TAKE DAMAGE
+    ===================================================== */
+
+    takeDamage(
+        amount
+    ) {
+
+
+        if (
+            this.invincible ||
+            this.hp <= 0
+        ) {
+
+            return;
+        }
+
+
+        this.hp =
+            Math.max(
+                0,
+                this.hp - amount
+            );
+
+
+        /*
+            Nhận damage
+            cộng MP
+        */
+
+        this.mp =
+            Math.min(
+                100,
+                this.mp + 10
+            );
+
+
+        /*
+            Hurt
+        */
+
+        this.hurtTimer =
+            18;
+
+
+        this.setState(
+            "hurt"
+        );
+
+
+        this.updateUI();
+
+
+        /*
+            Knockback
+        */
+
+        this.velocity.x =
+            this.facing === "right"
+                ? 5
+                : -5;
+
+    }
+
+
+    /* =====================================================
+       UPDATE UI
+    ===================================================== */
+
+    updateUI() {
+
+
+        const hp =
+            document.getElementById(
+                this.hpId
+            );
+
+
+        const mp =
+            document.getElementById(
+                this.mpId
+            );
+
+
+        if (hp) {
+
+            hp.style.width =
+                this.hp + "%";
+        }
+
+
+        if (mp) {
+
+            mp.style.width =
+                this.mp + "%";
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   CREATE PLAYERS
+========================================================= */
+
+const player1 =
+    new Player({
+
+        x:
+            canvas.width *
+            0.20,
+
+        facing:
+            "right",
+
+        hpId:
+            "p1-hp",
+
+        mpId:
+            "p1-mp",
+
+        color:
+            "#ef4444",
+
+        images:
+            p1Images,
+
+        fallback:
+            p1Fallback,
+
+        name:
+            "Võ sĩ"
+
     });
 
-    const player2 = new Player({ 
-      x: canvas.width * 0.75, 
-      facing: 'left', 
-      hpId: 'p2-hp', 
-      mpId: 'p2-mp', 
-      color: '#3b82f6',
-      imgObj: imgP2,
-      isP1: false
+
+const player2 =
+    new Player({
+
+        x:
+            canvas.width *
+            0.72,
+
+        facing:
+            "left",
+
+        hpId:
+            "p2-hp",
+
+        mpId:
+            "p2-mp",
+
+        color:
+            "#3b82f6",
+
+        images:
+            p2Images,
+
+        fallback:
+            p2Fallback,
+
+        name:
+            "Kiếm sĩ"
+
     });
 
-    const keys = { a: false, d: false, w: false, ArrowLeft: false, ArrowRight: false, ArrowUp: false };
 
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'a' || e.key === 'A') keys.a = true;
-      if (e.key === 'd' || e.key === 'D') keys.d = true;
-      if (e.key === 'w' || e.key === 'W') keys.w = true;
-      if (e.key === 'u' || e.key === 'U') { if (player1.attack(80, 0)) checkHit(player1, player2, 10); }
-      if (e.key === 'i' || e.key === 'I') { if (player1.attack(120, 30)) checkHit(player1, player2, 20); }
-      if (e.key === 'o' || e.key === 'O') { if (player1.attack(160, 50)) checkHit(player1, player2, 30); }
-      if (e.key === 'p' || e.key === 'P') { if (player1.attack(220, 80)) checkHit(player1, player2, 50); }
+/* =========================================================
+   KEYBOARD
+========================================================= */
 
-      if (e.key === 'ArrowLeft') keys.ArrowLeft = true;
-      if (e.key === 'ArrowRight') keys.ArrowRight = true;
-      if (e.key === 'ArrowUp') keys.ArrowUp = true;
-      if (e.key === '1') { if (player2.attack(80, 0)) checkHit(player2, player1, 10); }
-      if (e.key === '2') { if (player2.attack(120, 30)) checkHit(player2, player1, 20); }
-      if (e.key === '3') { if (player2.attack(160, 50)) checkHit(player2, player1, 30); }
-      if (e.key === '4') { if (player2.attack(220, 80)) checkHit(player2, player1, 50); }
-    });
+const keys = {
 
-    window.addEventListener('keyup', (e) => {
-      if (e.key === 'a' || e.key === 'A') keys.a = false;
-      if (e.key === 'd' || e.key === 'D') keys.d = false;
-      if (e.key === 'w' || e.key === 'W') keys.w = false;
-      if (e.key === 'ArrowLeft') keys.ArrowLeft = false;
-      if (e.key === 'ArrowRight') keys.ArrowRight = false;
-      if (e.key === 'ArrowUp') keys.ArrowUp = false;
-    });
+    a: false,
+    d: false,
+    w: false,
 
-    function checkHit(attacker, defender, damage) {
-      const boxX = attacker.facing === 'right' ? attacker.x + attacker.width : attacker.x - attacker.attackBox.width;
-      if (boxX < defender.x + defender.width && boxX + attacker.attackBox.width > defender.x) {
-        defender.takeDamage(damage);
-        attacker.mp = Math.min(100, attacker.mp + 15);
+    ArrowLeft: false,
+    ArrowRight: false,
+    ArrowUp: false
+
+};
+
+
+/* =========================================================
+   KEY DOWN
+========================================================= */
+
+window.addEventListener(
+    "keydown",
+    function(e) {
+
+
+        /*
+            tránh trình duyệt
+            scroll bằng phím
+        */
+
+        if (
+            [
+                "ArrowUp",
+                "ArrowDown",
+                "ArrowLeft",
+                "ArrowRight",
+                " "
+            ].includes(e.key)
+        ) {
+
+            e.preventDefault();
+        }
+
+
+        /* =================================================
+           P1 MOVE
+        ================================================= */
+
+        if (
+            e.key === "a" ||
+            e.key === "A"
+        ) {
+
+            keys.a = true;
+        }
+
+
+        if (
+            e.key === "d" ||
+            e.key === "D"
+        ) {
+
+            keys.d = true;
+        }
+
+
+        if (
+            e.key === "w" ||
+            e.key === "W"
+        ) {
+
+            keys.w = true;
+        }
+
+
+        /* =================================================
+           P1 ATTACK
+        ================================================= */
+
+        if (
+            e.key === "u" ||
+            e.key === "U"
+        ) {
+
+            if (
+                player1.attack()
+            ) {
+
+                setTimeout(
+                    function() {
+
+                        checkHit(
+                            player1,
+                            player2,
+                            10
+                        );
+
+                    },
+                    110
+                );
+
+            }
+
+        }
+
+
+        /* =================================================
+           P1 SKILL 1
+        ================================================= */
+
+        if (
+            e.key === "i" ||
+            e.key === "I"
+        ) {
+
+            if (
+                player1.skill({
+
+                    number:
+                        1,
+
+                    damage:
+                        20,
+
+                    cost:
+                        30,
+
+                    range:
+                        125,
+
+                    cooldown:
+                        50,
+
+                    text:
+                        "🔥 ĐẤM LỬA!",
+
+                    color:
+                        "#ef4444"
+
+                })
+            ) {
+
+                setTimeout(
+                    function() {
+
+                        checkHit(
+                            player1,
+                            player2,
+                            20
+                        );
+
+                    },
+                    180
+                );
+
+            }
+
+        }
+
+
+        /* =================================================
+           P1 SKILL 2
+        ================================================= */
+
+        if (
+            e.key === "o" ||
+            e.key === "O"
+        ) {
+
+            if (
+                player1.skill({
+
+                    number:
+                        2,
+
+                    damage:
+                        30,
+
+                    cost:
+                        50,
+
+                    range:
+                        165,
+
+                    cooldown:
+                        80,
+
+                    text:
+                        "💥 POWER KICK!",
+
+                    color:
+                        "#fb923c"
+
+                })
+            ) {
+
+                setTimeout(
+                    function() {
+
+                        checkHit(
+                            player1,
+                            player2,
+                            30
+                        );
+
+                    },
+                    200
+                );
+
+            }
+
+        }
+
+
+        /* =================================================
+           P1 ULTIMATE
+        ================================================= */
+
+        if (
+            e.key === "p" ||
+            e.key === "P"
+        ) {
+
+            if (
+                player1.skill({
+
+                    number:
+                        3,
+
+                    damage:
+                        50,
+
+                    cost:
+                        80,
+
+                    range:
+                        230,
+
+                    cooldown:
+                        120,
+
+                    text:
+                        "🔥 TUYỆT KỸ!",
+
+                    color:
+                        "#ff0000"
+
+                })
+            ) {
+
+                setTimeout(
+                    function() {
+
+                        checkHit(
+                            player1,
+                            player2,
+                            50
+                        );
+
+                    },
+                    260
+                );
+
+            }
+
+        }
+
+
+        /* =================================================
+           P2 MOVE
+        ================================================= */
+
+        if (
+            e.key === "ArrowLeft"
+        ) {
+
+            keys.ArrowLeft =
+                true;
+        }
+
+
+        if (
+            e.key === "ArrowRight"
+        ) {
+
+            keys.ArrowRight =
+                true;
+        }
+
+
+        if (
+            e.key === "ArrowUp"
+        ) {
+
+            keys.ArrowUp =
+                true;
+        }
+
+
+        /* =================================================
+           P2 ATTACK
+        ================================================= */
+
+        if (
+            e.key === "1"
+        ) {
+
+            if (
+                player2.attack()
+            ) {
+
+                setTimeout(
+                    function() {
+
+                        checkHit(
+                            player2,
+                            player1,
+                            10
+                        );
+
+                    },
+                    110
+                );
+
+            }
+
+        }
+
+
+        /* =================================================
+           P2 SKILL 1
+        ================================================= */
+
+        if (
+            e.key === "2"
+        ) {
+
+            if (
+                player2.skill({
+
+                    number:
+                        1,
+
+                    damage:
+                        20,
+
+                    cost:
+                        30,
+
+                    range:
+                        125,
+
+                    cooldown:
+                        50,
+
+                    text:
+                        "⚔️ CHÉM!",
+
+                    color:
+                        "#60a5fa"
+
+                })
+            ) {
+
+                setTimeout(
+                    function() {
+
+                        checkHit(
+                            player2,
+                            player1,
+                            20
+                        );
+
+                    },
+                    180
+                );
+
+            }
+
+        }
+
+
+        /* =================================================
+           P2 SKILL 2
+        ================================================= */
+
+        if (
+            e.key === "3"
+        ) {
+
+            if (
+                player2.skill({
+
+                    number:
+                        2,
+
+                    damage:
+                        30,
+
+                    cost:
+                        50,
+
+                    range:
+                        165,
+
+                    cooldown:
+                        80,
+
+                    text:
+                        "⚔️ KIẾM VŨ!",
+
+                    color:
+                        "#38bdf8"
+
+                })
+            ) {
+
+                setTimeout(
+                    function() {
+
+                        checkHit(
+                            player2,
+                            player1,
+                            30
+                        );
+
+                    },
+                    200
+                );
+
+            }
+
+        }
+
+
+        /* =================================================
+           P2 ULTIMATE
+        ================================================= */
+
+        if (
+            e.key === "4"
+        ) {
+
+            if (
+                player2.skill({
+
+                    number:
+                        3,
+
+                    damage:
+                        50,
+
+                    cost:
+                        80,
+
+                    range:
+                        230,
+
+                    cooldown:
+                        120,
+
+                    text:
+                        "⚡ TUYỆT KỸ!",
+
+                    color:
+                        "#93c5fd"
+
+                })
+            ) {
+
+                setTimeout(
+                    function() {
+
+                        checkHit(
+                            player2,
+                            player1,
+                            50
+                        );
+
+                    },
+                    260
+                );
+
+            }
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   KEY UP
+========================================================= */
+
+window.addEventListener(
+    "keyup",
+    function(e) {
+
+
+        if (
+            e.key === "a" ||
+            e.key === "A"
+        ) {
+
+            keys.a =
+                false;
+        }
+
+
+        if (
+            e.key === "d" ||
+            e.key === "D"
+        ) {
+
+            keys.d =
+                false;
+        }
+
+
+        if (
+            e.key === "w" ||
+            e.key === "W"
+        ) {
+
+            keys.w =
+                false;
+        }
+
+
+        if (
+            e.key === "ArrowLeft"
+        ) {
+
+            keys.ArrowLeft =
+                false;
+        }
+
+
+        if (
+            e.key === "ArrowRight"
+        ) {
+
+            keys.ArrowRight =
+                false;
+        }
+
+
+        if (
+            e.key === "ArrowUp"
+        ) {
+
+            keys.ArrowUp =
+                false;
+        }
+
+    }
+);
+
+
+/* =========================================================
+   HIT DETECTION
+========================================================= */
+
+function checkHit(
+    attacker,
+    defender,
+    damage
+) {
+
+
+    /*
+        Nếu đã đánh trúng
+        thì không đánh lại
+    */
+
+    if (
+        attacker.hitDone ||
+        !attacker.isAttacking
+    ) {
+
+        return;
+    }
+
+
+    const attackX =
+
+        attacker.facing === "right"
+
+            ? attacker.x +
+              attacker.width
+
+            : attacker.x -
+              attacker.attackBox.width;
+
+
+    const attackY =
+        attacker.y +
+        attacker.attackBox.y;
+
+
+    const attackWidth =
+        attacker.attackBox.width;
+
+
+    const attackHeight =
+        attacker.attackBox.height;
+
+
+    const hit =
+
+        attackX <
+        defender.x +
+        defender.width
+
+        &&
+
+        attackX +
+        attackWidth >
+        defender.x
+
+        &&
+
+        attackY <
+        defender.y +
+        defender.height
+
+        &&
+
+        attackY +
+        attackHeight >
+        defender.y;
+
+
+    if (
+        hit
+    ) {
+
+
+        attacker.hitDone =
+            true;
+
+
+        defender.takeDamage(
+            damage
+        );
+
+
+        /*
+            Khi đánh trúng
+            được thêm MP
+        */
+
+        attacker.mp =
+            Math.min(
+                100,
+                attacker.mp + 15
+            );
+
+
         attacker.updateUI();
 
-        if (defender.hp === 0) {
-          document.getElementById('winner-text').innerText = (attacker === player1 ? 'P1' : 'P2') + ' THẮNG!';
-          document.getElementById('game-over').style.display = 'block';
+
+        /*
+            DAMAGE TEXT
+        */
+
+        showMessage(
+            "-" + damage,
+            "#ff4444"
+        );
+
+
+        /*
+            GAME OVER
+        */
+
+        if (
+            defender.hp <= 0
+        ) {
+
+            endGame(
+                attacker
+            );
+
         }
-      }
+
     }
 
-    function resetGame() {
-      player1.hp = 100; player1.mp = 0; player1.x = canvas.width * 0.2;
-      player2.hp = 100; player2.mp = 0; player2.x = canvas.width * 0.75;
-      player1.updateUI(); player2.updateUI();
-      document.getElementById('game-over').style.display = 'none';
-      animate();
+}
+
+
+/* =========================================================
+   SHOW MESSAGE
+========================================================= */
+
+function showMessage(
+    text,
+    color
+) {
+
+
+    const element =
+        document.getElementById(
+            "skill-message"
+        );
+
+
+    element.innerText =
+        text;
+
+
+    element.style.color =
+        color;
+
+
+    element.style.opacity =
+        "1";
+
+
+    element.style.transform =
+        "translate(-50%, -50%) scale(1.1)";
+
+
+    setTimeout(
+        function() {
+
+            element.style.opacity =
+                "0";
+
+            element.style.transform =
+                "translate(-50%, -50%) scale(1)";
+
+        },
+        450
+    );
+
+}
+
+
+/* =========================================================
+   GAME OVER
+========================================================= */
+
+function endGame(
+    winner
+) {
+
+
+    document.getElementById(
+        "winner-text"
+    ).innerText =
+
+        (
+            winner === player1
+                ? "P1: VÕ SĨ"
+                : "P2: KIẾM SĨ"
+        )
+
+        +
+
+        " THẮNG!";
+
+
+    document.getElementById(
+        "game-over"
+    ).style.display =
+        "block";
+
+
+    player1.velocity.x =
+        0;
+
+    player2.velocity.x =
+        0;
+
+
+    player1.isAttacking =
+        false;
+
+    player2.isAttacking =
+        false;
+
+}
+
+
+/* =========================================================
+   RESET GAME
+========================================================= */
+
+function resetGame() {
+
+
+    player1.hp =
+        100;
+
+    player1.mp =
+        0;
+
+    player1.x =
+        canvas.width *
+        0.20;
+
+    player1.y =
+        100;
+
+    player1.velocity.x =
+        0;
+
+    player1.velocity.y =
+        0;
+
+    player1.state =
+        "idle";
+
+    player1.isAttacking =
+        false;
+
+    player1.attackTimer =
+        0;
+
+    player1.hurtTimer =
+        0;
+
+    player1.skillCooldown =
+        0;
+
+
+    player2.hp =
+        100;
+
+    player2.mp =
+        0;
+
+    player2.x =
+        canvas.width *
+        0.72;
+
+    player2.y =
+        100;
+
+    player2.velocity.x =
+        0;
+
+    player2.velocity.y =
+        0;
+
+    player2.state =
+        "idle";
+
+    player2.isAttacking =
+        false;
+
+    player2.attackTimer =
+        0;
+
+    player2.hurtTimer =
+        0;
+
+    player2.skillCooldown =
+        0;
+
+
+    player1.updateUI();
+
+    player2.updateUI();
+
+
+    document.getElementById(
+        "game-over"
+    ).style.display =
+        "none";
+
+}
+
+
+/* =========================================================
+   BACKGROUND
+========================================================= */
+
+function drawBackground() {
+
+
+    /*
+        Bầu trời
+    */
+
+    const gradient =
+        ctx.createLinearGradient(
+            0,
+            0,
+            0,
+            canvas.height
+        );
+
+
+    gradient.addColorStop(
+        0,
+        "#111827"
+    );
+
+
+    gradient.addColorStop(
+        0.55,
+        "#172554"
+    );
+
+
+    gradient.addColorStop(
+        1,
+        "#020617"
+    );
+
+
+    ctx.fillStyle =
+        gradient;
+
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    /*
+        Mặt trăng
+    */
+
+    ctx.fillStyle =
+        "rgba(255,255,255,0.9)";
+
+
+    ctx.shadowColor =
+        "rgba(255,255,255,0.6)";
+
+
+    ctx.shadowBlur =
+        25;
+
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+
+        canvas.width * 0.5,
+
+        canvas.height * 0.22,
+
+        45,
+
+        0,
+
+        Math.PI * 2
+
+    );
+
+
+    ctx.fill();
+
+
+    ctx.shadowBlur =
+        0;
+
+
+    /*
+        Núi
+    */
+
+    ctx.fillStyle =
+        "#0f172a";
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+        0,
+        canvas.height - 60
+    );
+
+
+    for (
+        let x = 0;
+        x <= canvas.width;
+        x += 150
+    ) {
+
+        const height =
+            80 +
+            Math.sin(x * 0.01) *
+            50;
+
+
+        ctx.lineTo(
+
+            x,
+
+            canvas.height -
+            60 -
+            height
+
+        );
+
     }
 
-    function animate() {
-      const animId = requestAnimationFrame(animate);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const groundY = canvas.height - 60;
-      ctx.fillStyle = '#334155';
-      ctx.fillRect(0, groundY, canvas.width, 60);
+    ctx.lineTo(
+        canvas.width,
+        canvas.height
+    );
 
-      player1.velocity.x = keys.a ? -6 : (keys.d ? 6 : 0);
-      if (keys.a) player1.facing = 'left';
-      if (keys.d) player1.facing = 'right';
-      if (keys.w && player1.y + player1.height >= groundY) player1.velocity.y = -16;
 
-      player2.velocity.x = keys.ArrowLeft ? -6 : (keys.ArrowRight ? 6 : 0);
-      if (keys.ArrowLeft) player2.facing = 'left';
-      if (keys.ArrowRight) player2.facing = 'right';
-      if (keys.ArrowUp && player2.y + player2.height >= groundY) player2.velocity.y = -16;
+    ctx.lineTo(
+        0,
+        canvas.height
+    );
 
-      player1.update();
-      player2.update();
 
-      if (player1.hp === 0 || player2.hp === 0) cancelAnimationFrame(animId);
+    ctx.closePath();
+
+
+    ctx.fill();
+
+
+    /*
+        Mặt đất
+    */
+
+    ctx.fillStyle =
+        "#1e293b";
+
+
+    ctx.fillRect(
+
+        0,
+
+        canvas.height -
+        groundHeight,
+
+        canvas.width,
+
+        groundHeight
+
+    );
+
+
+    /*
+        đường đất
+    */
+
+    ctx.fillStyle =
+        "#334155";
+
+
+    ctx.fillRect(
+
+        0,
+
+        canvas.height -
+        groundHeight,
+
+        canvas.width,
+
+        5
+
+    );
+
+}
+
+
+/* =========================================================
+   MOVEMENT
+========================================================= */
+
+function updateMovement() {
+
+
+    /*
+        P1
+    */
+
+    if (
+        player1.hp > 0
+    ) {
+
+
+        if (
+            keys.a
+        ) {
+
+            player1.velocity.x =
+                -WALK_SPEED;
+
+            player1.facing =
+                "left";
+
+        }
+
+        else if (
+            keys.d
+        ) {
+
+            player1.velocity.x =
+                WALK_SPEED;
+
+            player1.facing =
+                "right";
+
+        }
+
+        else {
+
+            player1.velocity.x =
+                0;
+
+        }
+
+
+        /*
+            Jump
+        */
+
+        if (
+            keys.w &&
+
+            player1.y +
+            player1.height >=
+            canvas.height -
+            groundHeight
+        ) {
+
+            player1.velocity.y =
+                -JUMP_POWER;
+
+        }
+
     }
 
-    animate();
-  </script>
+
+    /*
+        P2
+    */
+
+    if (
+        player2.hp > 0
+    ) {
+
+
+        if (
+            keys.ArrowLeft
+        ) {
+
+            player2.velocity.x =
+                -WALK_SPEED;
+
+            player2.facing =
+                "left";
+
+        }
+
+        else if (
+            keys.ArrowRight
+        ) {
+
+            player2.velocity.x =
+                WALK_SPEED;
+
+            player2.facing =
+                "right";
+
+        }
+
+        else {
+
+            player2.velocity.x =
+                0;
+
+        }
+
+
+        /*
+            Jump
+        */
+
+        if (
+            keys.ArrowUp &&
+
+            player2.y +
+            player2.height >=
+            canvas.height -
+            groundHeight
+        ) {
+
+            player2.velocity.y =
+                -JUMP_POWER;
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   GAME LOOP
+========================================================= */
+
+function animate() {
+
+
+    requestAnimationFrame(
+        animate
+    );
+
+
+    /*
+        Background
+    */
+
+    drawBackground();
+
+
+    /*
+        Movement
+    */
+
+    updateMovement();
+
+
+    /*
+        Players
+    */
+
+    player1.update();
+
+    player2.update();
+
+}
+
+
+/* =========================================================
+   START GAME
+========================================================= */
+
+player1.updateUI();
+
+player2.updateUI();
+
+animate();
+
+
+</script>
+
 </body>
 </html>
