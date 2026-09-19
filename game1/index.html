@@ -112,24 +112,34 @@
 
     const gravity = 0.8;
 
-    // Ảnh mẫu trực tuyến tách nền sẵn chuẩn đẹp
+    // Tự động tìm ảnh theo thứ tự ưu tiên
     const imgP1 = new Image();
     let p1Loaded = false;
-    imgP1.src = 'p1.png';
-    imgP1.onerror = () => {
-      // Nếu chưa có file p1.png trong repo thì dùng tạm link ảnh online này
-      imgP1.src = 'https://raw.githubusercontent.com/taniarascia/sandbox/master/gh-pages/sprites/ken.png';
-    };
+    const p1Sources = ['p1.png', 'p1.jpg', 'hero.jpg', 'hero.png', 'https://raw.githubusercontent.com/taniarascia/sandbox/master/gh-pages/sprites/ken.png'];
+    let p1Index = 0;
+    
+    function loadP1() {
+      if (p1Index < p1Sources.length) {
+        imgP1.src = p1Sources[p1Index++];
+      }
+    }
     imgP1.onload = () => { p1Loaded = true; };
+    imgP1.onerror = () => { loadP1(); };
+    loadP1();
 
     const imgP2 = new Image();
     let p2Loaded = false;
-    imgP2.src = 'p2.png';
-    imgP2.onerror = () => {
-      // Nếu chưa có file p2.png trong repo thì dùng tạm link ảnh online này
-      imgP2.src = 'https://raw.githubusercontent.com/taniarascia/sandbox/master/gh-pages/sprites/ryu.png';
-    };
+    const p2Sources = ['p2.png', 'p2.jpg', 'hero.jpg', 'hero.png', 'https://raw.githubusercontent.com/taniarascia/sandbox/master/gh-pages/sprites/ryu.png'];
+    let p2Index = 0;
+
+    function loadP2() {
+      if (p2Index < p2Sources.length) {
+        imgP2.src = p2Sources[p2Index++];
+      }
+    }
     imgP2.onload = () => { p2Loaded = true; };
+    imgP2.onerror = () => { loadP2(); };
+    loadP2();
 
     class Player {
       constructor({ x, facing, hpId, mpId, color, imgObj, isP1 }) {
