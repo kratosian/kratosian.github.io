@@ -1,295 +1,135 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kratos 1v1 Fighting - Sprite Version</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: #0f172a;
-      color: #fff;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const gravity = 0.7;
+const groundY = 380;
+
+class Player {
+  constructor({ x, facing, hpId, mpId, color }) {
+    this.x = x;
+    this.y = 200;
+    this.width = 50;
+    this.height = 80;
+    this.velocity = { x: 0, y: 0 };
+    this.facing = facing;
+    this.hp = 100;
+    this.mp = 0;
+    this.hpId = hpId;
+    this.mpId = mpId;
+    this.color = color;
+    this.isAttacking = false;
+    this.attackBox = { x: 0, y: 0, width: 60, height: 40 };
+  }
+
+  draw() {
+    // Vẽ khối nhân vật
+    ctx.fillStyle = this.color;
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+
+    // Vẽ mắt chỉ hướng quay mặt
+    ctx.fillStyle = '#fff';
+    const eyeX = this.facing === 'right' ? this.x + 35 : this.x + 5;
+    ctx.fillRect(eyeX, this.y + 15, 10, 10);
+
+    // Vẽ vùng đánh khi tấn công
+    if (this.isAttacking) {
+      ctx.fillStyle = 'rgba(255, 230, 0, 0.6)';
+      const boxX = this.facing === 'right' ? this.x + this.width : this.x - this.attackBox.width;
+      ctx.fillRect(boxX, this.y + 20, this.attackBox.width, this.attackBox.height);
     }
-    .game-container {
-      position: relative;
-      width: 800px;
-      height: 450px;
-      border: 3px solid #38bdf8;
-      box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
-    }
-    canvas { background: #1e293b; display: block; }
-    .ui-layer {
-      position: absolute;
-      top: 15px;
-      left: 20px;
-      right: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .status-group { width: 320px; }
-    .bar-container {
-      width: 100%;
-      height: 20px;
-      background: #334155;
-      border: 2px solid #fff;
-      border-radius: 6px;
-      overflow: hidden;
-      margin-bottom: 6px;
-    }
-    .mp-container { height: 12px; border-color: #94a3b8; }
-    .health-bar { height: 100%; width: 100%; transition: width 0.1s ease; }
-    .mana-bar { height: 100%; width: 0%; transition: width 0.1s ease; background: #a855f7; }
-    #p1-hp { background: #ef4444; }
-    #p2-hp { background: #3b82f6; float: right; }
-    #p2-mp { float: right; }
-    .controls-info {
-      margin-top: 15px;
-      font-size: 14px;
-      color: #94a3b8;
-      text-align: center;
-      line-height: 1.6;
-    }
-    #game-over {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(15, 23, 42, 0.95);
-      padding: 30px;
-      border-radius: 12px;
-      border: 2px solid #38bdf8;
-      text-align: center;
-      display: none;
-    }
-    button {
-      margin-top: 15px;
-      padding: 10px 20px;
-      background: #38bdf8;
-      border: none;
-      color: #0f172a;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
+  }
 
-  <h2 style="margin-bottom: 10px;">KRATOS 1V1 FIGHTING</h2>
+  update() {
+    this.x += this.velocity.x;
+    this.y += this.velocity.y;
 
-  <div class="game-container">
-    <div class="ui-layer">
-      <div class="status-group">
-        <div style="font-weight:bold; margin-bottom:4px; color:#ef4444;">P1: VÕ SĨ</div>
-        <div class="bar-container"><div id="p1-hp" class="health-bar"></div></div>
-        <div class="bar-container mp-container"><div id="p1-mp" class="mana-bar"></div></div>
-      </div>
-      <div style="font-size: 20px; font-weight: bold;">VS</div>
-      <div class="status-group">
-        <div style="font-weight:bold; margin-bottom:4px; color:#3b82f6; text-align:right;">P2: KIẾM SĨ</div>
-        <div class="bar-container"><div id="p2-hp" class="health-bar"></div></div>
-        <div class="bar-container mp-container"><div id="p2-mp" class="mana-bar"></div></div>
-      </div>
-    </div>
-
-    <div id="game-over">
-      <h1 id="winner-text" style="color: #facc15; margin-bottom: 10px;">P1 THẮNG!</h1>
-      <button onclick="resetGame()">CHƠI LẠI</button>
-    </div>
-
-    <canvas id="gameCanvas" width="800" height="450"></canvas>
-  </div>
-
-  <div class="controls-info">
-    <b>P1 (Võ sĩ):</b> A/D (Chạy), W (Nhảy), U (Đánh), I (Skill 1), O (Skill 2), P (Chiêu cuối)<br>
-    <b>P2 (Kiếm sĩ):</b> ←/→ (Chạy), ↑ (Nhảy), Num 1 (Đánh), Num 2 (Skill 1), Num 3 (Skill 2), Num 4 (Chiêu cuối)
-  </div>
-
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const gravity = 0.7;
-    const groundY = 380;
-
-    // Tải ảnh nhân vật
-    const spriteSheet = new Image();
-    let imgLoaded = false;
-    spriteSheet.onload = () => { imgLoaded = true; };
-    
-    // Thử tải hero.png trước, nếu lỗi chuyển sang tên file upload gốc
-    spriteSheet.src = 'hero.png';
-    spriteSheet.onerror = () => {
-      spriteSheet.src = '3c0ec9cc-f01d-4f87-9ad4-8cf2a52739d5.jpg';
-    };
-
-    class Player {
-      constructor({ x, facing, hpId, mpId, color }) {
-        this.x = x;
-        this.y = 200;
-        this.width = 65;
-        this.height = 95;
-        this.velocity = { x: 0, y: 0 };
-        this.facing = facing;
-        this.hp = 100;
-        this.mp = 0;
-        this.hpId = hpId;
-        this.mpId = mpId;
-        this.color = color;
-        this.isAttacking = false;
-        this.attackBox = { x: 0, y: 0, width: 60, height: 40 };
-      }
-
-      draw() {
-        if (imgLoaded) {
-          ctx.save();
-          if (this.facing === 'left') {
-            ctx.translate(this.x + this.width, this.y);
-            ctx.scale(-1, 1);
-            ctx.drawImage(spriteSheet, 0, 0, spriteSheet.width / 2, spriteSheet.height, 0, 0, this.width, this.height);
-          } else {
-            ctx.drawImage(spriteSheet, 0, 0, spriteSheet.width / 2, spriteSheet.height, this.x, this.y, this.width, this.height);
-          }
-          ctx.restore();
-        } else {
-          // Vẽ khối nhân vật dự phòng nếu chưa có ảnh
-          ctx.fillStyle = this.color;
-          ctx.fillRect(this.x, this.y, this.width, this.height);
-          
-          // Vẽ mắt để phân biệt hướng
-          ctx.fillStyle = '#fff';
-          const eyeX = this.facing === 'right' ? this.x + 45 : this.x + 10;
-          ctx.fillRect(eyeX, this.y + 15, 10, 10);
-        }
-
-        // Đòn đánh
-        if (this.isAttacking) {
-          ctx.fillStyle = 'rgba(255, 230, 0, 0.6)';
-          const boxX = this.facing === 'right' ? this.x + this.width : this.x - this.attackBox.width;
-          ctx.fillRect(boxX, this.y + 20, this.attackBox.width, this.attackBox.height);
-        }
-      }
-
-      update() {
-        this.x += this.velocity.x;
-        this.y += this.velocity.y;
-
-        if (this.y + this.height + this.velocity.y >= groundY) {
-          this.velocity.y = 0;
-          this.y = groundY - this.height;
-        } else {
-          this.velocity.y += gravity;
-        }
-
-        if (this.x < 0) this.x = 0;
-        if (this.x + this.width > canvas.width) this.x = canvas.width - this.width;
-
-        this.draw();
-      }
-
-      attack(boxWidth = 60, costMP = 0) {
-        if (this.isAttacking || this.mp < costMP) return false;
-        this.mp -= costMP;
-        this.updateUI();
-        this.isAttacking = true;
-        this.attackBox.width = boxWidth;
-        setTimeout(() => { this.isAttacking = false; }, 200);
-        return true;
-      }
-
-      takeDamage(amount) {
-        this.hp = Math.max(0, this.hp - amount);
-        this.mp = Math.min(100, this.mp + 10);
-        this.updateUI();
-      }
-
-      updateUI() {
-        document.getElementById(this.hpId).style.width = this.hp + '%';
-        document.getElementById(this.mpId).style.width = this.mp + '%';
-      }
+    if (this.y + this.height + this.velocity.y >= groundY) {
+      this.velocity.y = 0;
+      this.y = groundY - this.height;
+    } else {
+      this.velocity.y += gravity;
     }
 
-    const player1 = new Player({ x: 150, facing: 'right', hpId: 'p1-hp', mpId: 'p1-mp', color: '#ef4444' });
-    const player2 = new Player({ x: 610, facing: 'left', hpId: 'p2-hp', mpId: 'p2-mp', color: '#3b82f6' });
+    if (this.x < 0) this.x = 0;
+    if (this.x + this.width > canvas.width) this.x = canvas.width - this.width;
 
-    const keys = { a: false, d: false, w: false, ArrowLeft: false, ArrowRight: false, ArrowUp: false };
+    this.draw();
+  }
 
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'a' || e.key === 'A') keys.a = true;
-      if (e.key === 'd' || e.key === 'D') keys.d = true;
-      if (e.key === 'w' || e.key === 'W') keys.w = true;
-      if (e.key === 'u' || e.key === 'U') { if (player1.attack(60, 0)) checkHit(player1, player2, 10); }
-      if (e.key === 'i' || e.key === 'I') { if (player1.attack(90, 30)) checkHit(player1, player2, 20); }
-      if (e.key === 'o' || e.key === 'O') { if (player1.attack(120, 50)) checkHit(player1, player2, 30); }
-      if (e.key === 'p' || e.key === 'P') { if (player1.attack(160, 80)) checkHit(player1, player2, 50); }
+  attack(boxWidth = 60, costMP = 0) {
+    if (this.isAttacking || this.mp < costMP) return false;
+    this.mp -= costMP;
+    this.updateUI();
+    this.isAttacking = true;
+    this.attackBox.width = boxWidth;
+    setTimeout(() => { this.isAttacking = false; }, 200);
+    return true;
+  }
 
-      if (e.key === 'ArrowLeft') keys.ArrowLeft = true;
-      if (e.key === 'ArrowRight') keys.ArrowRight = true;
-      if (e.key === 'ArrowUp') keys.ArrowUp = true;
-      if (e.key === '1') { if (player2.attack(60, 0)) checkHit(player2, player1, 10); }
-      if (e.key === '2') { if (player2.attack(90, 30)) checkHit(player2, player1, 20); }
-      if (e.key === '3') { if (player2.attack(120, 50)) checkHit(player2, player1, 30); }
-      if (e.key === '4') { if (player2.attack(160, 80)) checkHit(player2, player1, 50); }
-    });
+  takeDamage(amount) {
+    this.hp = Math.max(0, this.hp - amount);
+    this.mp = Math.min(100, this.mp + 10);
+    this.updateUI();
+  }
 
-    window.addEventListener('keyup', (e) => {
-      if (e.key === 'a' || e.key === 'A') keys.a = false;
-      if (e.key === 'd' || e.key === 'D') keys.d = false;
-      if (e.key === 'w' || e.key === 'W') keys.w = false;
-      if (e.key === 'ArrowLeft') keys.ArrowLeft = false;
-      if (e.key === 'ArrowRight') keys.ArrowRight = false;
-      if (e.key === 'ArrowUp') keys.ArrowUp = false;
-    });
+  updateUI() {
+    document.getElementById(this.hpId).style.width = this.hp + '%';
+    document.getElementById(this.mpId).style.width = this.mp + '%';
+  }
+}
 
-    function checkHit(attacker, defender, damage) {
-      const boxX = attacker.facing === 'right' ? attacker.x + attacker.width : attacker.x - attacker.attackBox.width;
-      if (boxX < defender.x + defender.width && boxX + attacker.attackBox.width > defender.x) {
-        defender.takeDamage(damage);
-        if (defender.hp === 0) {
-          document.getElementById('winner-text').innerText = (attacker === player1 ? 'P1' : 'P2') + ' THẮNG!';
-          document.getElementById('game-over').style.display = 'block';
-        }
-      }
-    }
+const player1 = new Player({ x: 150, facing: 'right', hpId: 'p1-hp', mpId: 'p1-mp', color: '#ef4444' });
+const player2 = new Player({ x: 610, facing: 'left', hpId: 'p2-hp', mpId: 'p2-mp', color: '#3b82f6' });
 
-    function resetGame() {
-      player1.hp = 100; player1.mp = 0; player1.x = 150;
-      player2.hp = 100; player2.mp = 0; player2.x = 610;
-      player1.updateUI(); player2.updateUI();
-      document.getElementById('game-over').style.display = 'none';
-      animate();
-    }
+const keys = { a: false, d: false, w: false, ArrowLeft: false, ArrowRight: false, ArrowUp: false };
 
-    function animate() {
-      const animId = requestAnimationFrame(animate);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'a' || e.key === 'A') keys.a = true;
+  if (e.key === 'd' || e.key === 'D') keys.d = true;
+  if (e.key === 'w' || e.key === 'W') keys.w = true;
+  if (e.key === 'u' || e.key === 'U') { if (player1.attack(60, 0)) checkHit(player1, player2, 10); }
 
-      ctx.fillStyle = '#334155';
-      ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+  if (e.key === 'ArrowLeft') keys.ArrowLeft = true;
+  if (e.key === 'ArrowRight') keys.ArrowRight = true;
+  if (e.key === 'ArrowUp') keys.ArrowUp = true;
+  if (e.key === '1') { if (player2.attack(60, 0)) checkHit(player2, player1, 10); }
+});
 
-      player1.velocity.x = keys.a ? -4 : (keys.d ? 4 : 0);
-      if (keys.a) player1.facing = 'left';
-      if (keys.d) player1.facing = 'right';
-      if (keys.w && player1.y + player1.height >= groundY) player1.velocity.y = -14;
+window.addEventListener('keyup', (e) => {
+  if (e.key === 'a' || e.key === 'A') keys.a = false;
+  if (e.key === 'd' || e.key === 'D') keys.d = false;
+  if (e.key === 'w' || e.key === 'W') keys.w = false;
+  if (e.key === 'ArrowLeft') keys.ArrowLeft = false;
+  if (e.key === 'ArrowRight') keys.ArrowRight = false;
+  if (e.key === 'ArrowUp') keys.ArrowUp = false;
+});
 
-      player2.velocity.x = keys.ArrowLeft ? -4 : (keys.ArrowRight ? 4 : 0);
-      if (keys.ArrowLeft) player2.facing = 'left';
-      if (keys.ArrowRight) player2.facing = 'right';
-      if (keys.ArrowUp && player2.y + player2.height >= groundY) player2.velocity.y = -14;
+function checkHit(attacker, defender, damage) {
+  const boxX = attacker.facing === 'right' ? attacker.x + attacker.width : attacker.x - attacker.attackBox.width;
+  if (boxX < defender.x + defender.width && boxX + attacker.attackBox.width > defender.x) {
+    defender.takeDamage(damage);
+  }
+}
 
-      player1.update();
-      player2.update();
+function animate() {
+  requestAnimationFrame(animate);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      if (player1.hp === 0 || player2.hp === 0) cancelAnimationFrame(animId);
-    }
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
 
-    animate();
-  </script>
-</body>
-</html>
+  player1.velocity.x = keys.a ? -4 : (keys.d ? 4 : 0);
+  if (keys.a) player1.facing = 'left';
+  if (keys.d) player1.facing = 'right';
+  if (keys.w && player1.y + player1.height >= groundY) player1.velocity.y = -14;
+
+  player2.velocity.x = keys.ArrowLeft ? -4 : (keys.ArrowRight ? 4 : 0);
+  if (keys.ArrowLeft) player2.facing = 'left';
+  if (keys.ArrowRight) player2.facing = 'right';
+  if (keys.ArrowUp && player2.y + player2.height >= groundY) player2.velocity.y = -14;
+
+  player1.update();
+  player2.update();
+}
+
+animate();
