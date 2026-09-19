@@ -2,8 +2,8 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
-<title>4 Heroes Fighting - Landscape Mobile Controls</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>4 Heroes Fighting - PC Normal / Mobile Landscape</title>
 <!-- Thư viện PeerJS để kết nối trực tiếp 2 máy -->
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
@@ -85,7 +85,7 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
 .btn-ui { margin: 4px; padding: 8px 16px; border: none; border-radius: 6px; background: #facc15; font-weight: bold; cursor: pointer; font-size: 14px; }
 #skill-message { position: absolute; left: 50%; top: 35%; transform: translate(-50%, -50%); font-size: 26px; font-weight: 900; opacity: 0; pointer-events: none; z-index: 30; transition: opacity 0.2s; }
 
-/* --- BẢNG ĐIỀU KHIỂN XOAY NGANG CHO ĐIỆN THOẠI (LANDSCAPE MOBILE CONTROLS) --- */
+/* --- BẢNG ĐIỀU KHIỂN CẢM ỨNG (CHỈ HIỆN KHI LÀ ĐIỆN THOẠI) --- */
 #mobile-controls {
     position: absolute; bottom: 12px; left: 0; right: 0;
     display: none; justify-content: space-between; padding: 0 25px; z-index: 40; pointer-events: none;
@@ -119,7 +119,7 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
         <div class="lobby-box">
             <div class="lobby-title">⚔️ 4 HEROES FIGHTING</div>
             <button class="btn-custom" onclick="showMode('bot')">🤖 ĐẤU VỚI MÁY (PVE)</button>
-            <button class="btn-custom" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white;" onclick="showMode('online')">🌐 ĐẤU ONLINE (XOAY NGANG)</button>
+            <button class="btn-custom" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white;" onclick="showMode('online')">🌐 ĐẤU ONLINE (2 MÁY)</button>
         </div>
     </div>
 
@@ -196,7 +196,7 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
         <button class="btn-ui" style="background: #ef4444; color: white;" onclick="location.reload()">VỀ TRANG CHỦ</button>
     </div>
 
-    <!-- NÚT ĐIỀU KHIỂN CẢM ỨNG XOAY NGANG (BÊN TRÁI & BÊN PHẢI) -->
+    <!-- NÚT ĐIỀU KHIỂN CẢM ỨNG (CHỈ HIỆN KHI LÀ THIẾT BỊ DI ĐỘNG) -->
     <div id="mobile-controls">
         <div class="touch-group-left">
             <div class="touch-btn" id="btn-left">◀</div>
@@ -210,7 +210,7 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
         </div>
     </div>
 
-    <div class="controls-info" id="pc-controls-text">
+    <div class="controls-info" id="controls-text">
         <b>PC:</b> A/D Di chuyển · W Nhảy · U Đánh · I/O Chiêu Năng Lượng
     </div>
 
@@ -221,9 +221,29 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+// Kiểm tra xem người dùng đang dùng thiết bị di động (Mobile/Tablet) hay máy tính (PC)
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 900;
+
+function resizeCanvas() {
+    if (isMobile) {
+        // Trên điện thoại: Ép màn hình xoay ngang (chiều rộng luôn lớn hơn chiều cao)
+        canvas.width = Math.max(window.innerWidth, window.innerHeight);
+        canvas.height = Math.min(window.innerWidth, window.innerHeight);
+    } else {
+        // Trên máy tính: Giữ nguyên kích thước hiển thị bình thường
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+}
+
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
+
+// Nếu là thiết bị di động, tự động bật hiển thị phím ảo cảm ứng và ẩn hướng dẫn bàn phím PC
+if (isMobile) {
+    document.getElementById("mobile-controls").style.display = "flex";
+    document.getElementById("controls-text").style.display = "none";
+}
 
 const gravity = 0.8;
 const groundHeight = 55;
@@ -244,23 +264,18 @@ const heroList = ['vosi', 'kiemsi', 'phapsu', 'cungthu'];
 function showMode(mode) {
     gameMode = mode;
     document.getElementById("mode-select-screen").style.display = "none";
-    document.getElementById("mobile-controls").style.display = "flex"; // Luôn hiện phím ảo xoay ngang để tiện chơi trên mobile
     if (mode === 'online') {
         document.getElementById("online-overlay").style.display = "flex";
-        document.getElementById("pc-controls-text").style.display = "none";
     } else {
         isHost = true;
         setupBotSelectScreen();
         document.getElementById("char-select-screen").style.display = "flex";
-        document.getElementById("pc-controls-text").style.display = "none";
     }
 }
 
 function backToModeSelect() {
     document.getElementById("online-overlay").style.display = "none";
     document.getElementById("mode-select-screen").style.display = "flex";
-    document.getElementById("mobile-controls").style.display = "none";
-    document.getElementById("pc-controls-text").style.display = "block";
 }
 
 function setupBotSelectScreen() {
@@ -434,7 +449,7 @@ class Player {
         this.x = x; this.y = 100; this.width = 90; this.height = 140;
         this.velocity = { x: 0, y: 0 }; this.facing = facing;
         this.hp = 100; this.mp = 0; this.hpId = hpId; this.mpId = mpId; this.isP1 = isP1;
-        this.heroType = type = heroType; this.frame = 0; this.animTimer = 0;
+        this.heroType = heroType; this.frame = 0; this.animTimer = 0;
         this.isAttacking = false; this.attackTimer = 0; this.hitDone = false;
         this.attackBox = { width: 85, height: 90 }; this.hurtTimer = 0;
         this.botActionTimer = 0;
@@ -703,7 +718,7 @@ window.addEventListener("keyup", e => {
     if (e.key === "d" || e.key === "D") keys.d = false;
 });
 
-// --- ĐIỀU KHIỂN CẢM ỨNG XOAY NGANG ---
+// --- ĐIỀU KHIỂN CẢM ỨNG (CHỈ ÁP DỤNG TRÊN ĐIỆN THOẠI) ---
 const bindTouchButton = (id, onDown, onUp) => {
     const el = document.getElementById(id);
     if (!el) return;
