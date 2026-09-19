@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>4 Heroes Fighting - Đầy Đủ Hiệu Ứng</title>
+<title>4 Heroes Fighting - Full Hiệu Ứng 4 Nhân Vật</title>
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -301,7 +301,7 @@ class Player {
             ctx.fillStyle = "#ffdbac"; ctx.fillRect(12, 10 + bodyY, 16, 10);
             ctx.fillStyle = "#000000"; ctx.fillRect(14, 13 + bodyY, 5, 3); ctx.fillRect(21, 13 + bodyY, 5, 3);
             ctx.fillStyle = "#0f172a"; ctx.fillRect(8, 20 + bodyY, 24, 28);
-            ctx.fillStyle = "#ef4444"; ctx.fillRect(18, 20 + bodyY, 4, 28);
+            ctx.fillStyle = this.isP1 ? "#ef4444" : "#a855f7"; ctx.fillRect(18, 20 + bodyY, 4, 28);
             ctx.fillStyle = "#78350f"; ctx.fillRect(24 + armOffset, 22 + bodyY, 12, 3);
 
         } else if (this.heroType === "cungthu") {
@@ -309,7 +309,7 @@ class Player {
             ctx.fillStyle = "#ffdbac"; ctx.fillRect(12, 8 + bodyY, 16, 10);
             ctx.fillRect(6, 10 + bodyY, 5, 3); ctx.fillRect(29, 10 + bodyY, 5, 3);
             ctx.fillStyle = "#15803d"; ctx.fillRect(10, 18 + bodyY, 20, 22);
-            ctx.fillStyle = "#78350f"; ctx.fillRect(24, 14 + bodyY, 4, 24);
+            ctx.fillStyle = "#78350f"; ctx.fillRect(24 + armOffset, 14 + bodyY, 4, 24);
             ctx.fillStyle = "#166534"; ctx.fillRect(12 + legOffset, 48, 7, 14); ctx.fillRect(21 - legOffset, 48, 7, 14);
         }
 
@@ -328,7 +328,6 @@ class Player {
         ctx.save();
 
         if (this.heroType === "vosi") {
-            // HIỆU ỨNG SẤM SÉT VÕ SĨ
             let progress = (18 - this.attackTimer) / 18;
             let auraGrad = ctx.createRadialGradient(
                 isRight ? rangeX + 20 : rangeX + width - 20, rangeY + height / 2, 10,
@@ -361,49 +360,108 @@ class Player {
             ctx.beginPath(); ctx.arc(cx, cy, progress * 45, 0, Math.PI * 2); ctx.stroke();
 
         } else if (this.heroType === "kiemsi") {
-            // HIỆU ỨNG KIẾM SĨ (Vòng cung chém)
-            const color = this.isP1 ? "#ef4444" : "#3b82f6";
-            const centerX = this.x + this.width / 2;
-            const centerY = this.y + this.height / 2;
-            let progress = (18 - this.attackTimer) / 18;
-            let radius = width * 1.1;
-
-            let startAngle = isRight ? -Math.PI / 2.5 : Math.PI + Math.PI / 2.5;
-            let endAngle = isRight ? startAngle + (Math.PI * 0.95 * progress) : startAngle - (Math.PI * 0.95 * progress);
-
-            ctx.strokeStyle = color; ctx.lineWidth = 22; ctx.globalAlpha = 0.25 * (1 - progress);
-            ctx.beginPath(); ctx.arc(centerX, centerY, radius, startAngle, endAngle, !isRight); ctx.stroke();
-
-            ctx.shadowColor = color; ctx.shadowBlur = 25; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 7; ctx.globalAlpha = 1;
-            ctx.beginPath(); ctx.arc(centerX, centerY, radius, startAngle, endAngle, !isRight); ctx.stroke();
-
-        } else if (this.heroType === "phapsu") {
-            // HIỆU ỨNG PHÁP SƯ (Vùng ma pháp lan tỏa)
-            const mainColor = this.isP1 ? "239, 68, 68" : "168, 85, 247";
-            let energyGrad = ctx.createRadialGradient(
-                isRight ? rangeX : rangeX + width, rangeY + height / 2, 10,
+            let slashColor = this.isP1 ? "#ef4444" : "#38bdf8";
+            let coreColor = this.isP1 ? "#f59e0b" : "#ffffff";
+            
+            let slashGrad = ctx.createRadialGradient(
+                isRight ? rangeX + 10 : rangeX + width - 10, rangeY + height / 2, 5,
                 isRight ? rangeX + width / 2 : rangeX + width / 2, rangeY + height / 2, width
             );
-            energyGrad.addColorStop(0, `rgba(${mainColor}, 0.8)`);
-            energyGrad.addColorStop(0.6, `rgba(${mainColor}, 0.3)`);
-            energyGrad.addColorStop(1, `rgba(${mainColor}, 0.0)`);
-            ctx.fillStyle = energyGrad; ctx.fillRect(rangeX, rangeY, width, height);
+            slashGrad.addColorStop(0, this.isP1 ? "rgba(239, 68, 68, 0.9)" : "rgba(56, 189, 248, 0.9)");
+            slashGrad.addColorStop(0.5, this.isP1 ? "rgba(245, 158, 11, 0.5)" : "rgba(59, 130, 246, 0.5)");
+            slashGrad.addColorStop(1, "rgba(0,0,0,0)");
+            
+            ctx.fillStyle = slashGrad;
+            ctx.fillRect(rangeX, rangeY, width, height);
 
-            // Vòng tròn ma pháp huyền ảo
-            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.shadowColor = `rgb(${mainColor})`; ctx.shadowBlur = 15;
-            ctx.beginPath(); ctx.arc(isRight ? rangeX + width * 0.7 : rangeX + width * 0.3, rangeY + height / 2, 35, 0, Math.PI * 2); ctx.stroke();
+            ctx.shadowColor = slashColor; ctx.shadowBlur = 30;
+            ctx.strokeStyle = coreColor; ctx.lineWidth = 6;
+            
+            ctx.beginPath();
+            let arcX = isRight ? this.x + this.width + 15 : this.x - 15;
+            let arcY = this.y + this.height / 2;
+            let startAngle = isRight ? -Math.PI / 2.2 : Math.PI - Math.PI / 2.2;
+            let endAngle = isRight ? startAngle + (Math.PI * 0.9) : startAngle - (Math.PI * 0.9);
+            ctx.arc(arcX, arcY, 70, startAngle, endAngle, !isRight);
+            ctx.stroke();
+
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2.5;
+            for(let i=0; i<3; i++) {
+                ctx.beginPath();
+                let randOff = (Math.random() - 0.5) * 40;
+                ctx.moveTo(arcX, arcY + randOff);
+                ctx.lineTo(arcX + (isRight ? 1 : -1) * (50 + Math.random() * 40), arcY + randOff + (Math.random() * 30 - 15));
+                ctx.stroke();
+            }
+
+        } else if (this.heroType === "phapsu") {
+            const magicColor = this.isP1 ? "239, 68, 68" : "168, 85, 247";
+            
+            let spellGrad = ctx.createRadialGradient(
+                this.x + this.width / 2, this.y + this.height / 2, 10,
+                this.x + this.width / 2, this.y + this.height / 2, width * 1.2
+            );
+            spellGrad.addColorStop(0, `rgba(${magicColor}, 0.85)`);
+            spellGrad.addColorStop(0.5, `rgba(${magicColor}, 0.4)`);
+            spellGrad.addColorStop(1, `rgba(${magicColor}, 0)`);
+            
+            ctx.fillStyle = spellGrad;
+            ctx.fillRect(rangeX - 30, rangeY - 30, width + 60, height + 60);
+
+            ctx.shadowColor = `rgb(${magicColor})`; ctx.shadowBlur = 30;
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            let orbX = isRight ? this.x + this.width + 50 : this.x - 50;
+            let orbY = this.y + this.height / 2;
+            ctx.arc(orbX, orbY, 45, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.fillStyle = "#ffffff";
+            for(let i=0; i<5; i++) {
+                let angle = Math.random() * Math.PI * 2;
+                let r = 15 + Math.random() * 30;
+                ctx.fillRect(orbX + Math.cos(angle)*r, orbY + Math.sin(angle)*r, 4, 4);
+            }
 
         } else if (this.heroType === "cungthu") {
-            // HIỆU ỨNG CUNG THỦ (Mũi tên năng lượng vạch sáng)
-            const primaryColor = this.isP1 ? "239, 68, 68" : "59, 130, 246";
-            ctx.fillStyle = `rgba(${primaryColor}, 0.45)`; ctx.fillRect(rangeX, rangeY, width, height);
+            // HIỆU ỨNG CUNG THỦ (Mũi Tên Năng Lượng & Vòng Tròn Ngắm Bắn)
+            const arrowColor = this.isP1 ? "239, 68, 68" : "34, 197, 94";
+            
+            let archerGrad = ctx.createLinearGradient(
+                isRight ? this.x + this.width : rangeX, rangeY,
+                isRight ? rangeX + width : rangeX, rangeY + height
+            );
+            archerGrad.addColorStop(0, `rgba(${arrowColor}, 0.8)`);
+            archerGrad.addColorStop(0.5, "rgba(250, 204, 21, 0.5)");
+            archerGrad.addColorStop(1, `rgba(${arrowColor}, 0)`);
 
-            // Vệt bắn tên rực sáng
-            ctx.shadowColor = `rgb(${primaryColor})`; ctx.shadowBlur = 20;
+            ctx.fillStyle = archerGrad;
+            ctx.fillRect(rangeX, rangeY, width, height);
+
+            // Vẽ các đường tia năng lượng vạch ngang tầm bắn
+            ctx.shadowColor = `rgb(${arrowColor})`; ctx.shadowBlur = 25;
             ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.moveTo(isRight ? rangeX : rangeX + width, rangeY + height / 2);
-            ctx.lineTo(isRight ? rangeX + width : rangeX, rangeY + height / 2);
+            let startArrowX = isRight ? this.x + this.width : rangeX + width;
+            let endArrowX = isRight ? rangeX + width : rangeX;
+            let midY = rangeY + height / 2;
+            
+            ctx.moveTo(startArrowX, midY);
+            ctx.lineTo(endArrowX, midY);
+            ctx.stroke();
+
+            // Mũi tên phụ tỏa ra xung quanh
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(endArrowX + (isRight ? -15 : 15), midY - 12);
+            ctx.lineTo(endArrowX, midY);
+            ctx.lineTo(endArrowX + (isRight ? -15 : 15), midY + 12);
+            ctx.stroke();
+
+            // Vòng ngắm bắn mục tiêu ở đầu tầm bay
+            ctx.strokeStyle = "#facc15"; ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(endArrowX, midY, 25, 0, Math.PI * 2);
             ctx.stroke();
         }
 
@@ -418,10 +476,10 @@ class Player {
         ctx.fill();
         ctx.restore();
 
-        // HIỆU ỨNG HÀO QUANG BAO QUANH KHI VÕ SĨ TẤN CÔNG
-        if (this.heroType === "vosi" && this.isAttacking) {
+        if (this.isAttacking) {
             ctx.save();
-            ctx.shadowColor = "#38bdf8"; ctx.shadowBlur = 25;
+            ctx.shadowColor = this.heroType === 'vosi' ? "#38bdf8" : (this.heroType === 'cungthu' ? "#22c55e" : (this.isP1 ? "#ef4444" : "#a855f7")); 
+            ctx.shadowBlur = 25;
             ctx.strokeStyle = "rgba(250, 204, 21, 0.7)"; ctx.lineWidth = 4;
             ctx.strokeRect(this.x - 6, this.y - 6, this.width + 12, this.height + 12);
             ctx.restore();
@@ -468,7 +526,7 @@ class Player {
         if (this.isAttacking || this.hp <= 0) return false;
         this.isAttacking = true; this.hitDone = false;
         this.attackTimer = 15;
-        this.attackBox.width = this.heroType === "vosi" ? 110 : 90;
+        this.attackBox.width = this.heroType === "vosi" ? 110 : (this.heroType === "cungthu" ? 140 : 105);
         this.updateUI();
         return true;
     }
@@ -538,12 +596,14 @@ window.addEventListener("keydown", e => {
     if ((e.key === "w" || e.key === "W") && player1.y >= canvas.height - groundHeight - player1.height) player1.velocity.y = -16;
     if (e.key === "u" || e.key === "U") { if (player1.attack()) setTimeout(() => checkHit(player1, player2, 10), 100); }
     if (e.key === "i" || e.key === "I") { 
-        let text = player1.heroType === 'vosi' ? "⚡ LÔI QUYỀN LIÊN HOÀN!" : (player1.heroType === 'kiemsi' ? "⚔️ PHONG TRẢM!" : (player1.heroType === 'phapsu' ? "🪄 HỎA CẦU THUẬT!" : "🏹 TIỄN VŨ!"));
-        if (player1.skill(30, 200, text, "#38bdf8")) setTimeout(() => checkHit(player1, player2, 22), 150); 
+        let text = player1.heroType === 'vosi' ? "⚡ LÔI QUYỀN LIÊN HOÀN!" : (player1.heroType === 'kiemsi' ? "⚔️ PHONG TRẢM KHÍ!" : (player1.heroType === 'phapsu' ? "🪄 HỎA CẦU THUẬT!" : "🏹 LIÊN HOÀN TIỄN!"));
+        let range = player1.heroType === 'cungthu' ? 240 : 200;
+        if (player1.skill(30, range, text, "#38bdf8")) setTimeout(() => checkHit(player1, player2, 22), 150); 
     }
     if (e.key === "o" || e.key === "O") { 
-        let text = player1.heroType === 'vosi' ? "⚡⚡ CÚ ĐẤM SẤM SÉT!" : (player1.heroType === 'kiemsi' ? "💥 LẠC DIỆP TRẢM!" : (player1.heroType === 'phapsu' ? "☄️ THIÊN HỎA BẠO KÍCH!" : "🎯 BÁCH PHÁT BÁCH TRÚNG!"));
-        if (player1.skill(50, 300, text, "#facc15")) setTimeout(() => checkHit(player1, player2, 35), 180); 
+        let text = player1.heroType === 'vosi' ? "⚡⚡ CÚ ĐẤM SẤM SÉT!" : (player1.heroType === 'kiemsi' ? "💥 HỎA LONG TRẢM KÍCH!" : (player1.heroType === 'phapsu' ? "☄️ THIÊN HỎA BẠO KÍCH!" : "🎯 BÁCH PHÁT BÁCH TRÚNG!"));
+        let range = player1.heroType === 'cungthu' ? 340 : 300;
+        if (player1.skill(50, range, text, "#facc15")) setTimeout(() => checkHit(player1, player2, 35), 180); 
     }
 
     // P2 CONTROLS
@@ -552,12 +612,14 @@ window.addEventListener("keydown", e => {
     if (e.key === "ArrowUp" && player2.y >= canvas.height - groundHeight - player2.height) player2.velocity.y = -16;
     if (e.key === "j" || e.key === "J" || e.key === "1") { if (player2.attack()) setTimeout(() => checkHit(player2, player1, 10), 100); }
     if (e.key === "k" || e.key === "K" || e.key === "2") { 
-        let text = player2.heroType === 'vosi' ? "⚡ LÔI QUYỀN LIÊN HOÀN!" : (player2.heroType === 'kiemsi' ? "⚔️ PHONG TRẢM!" : (player2.heroType === 'phapsu' ? "🪄 HỎA CẦU THUẬT!" : "🏹 TIỄN VŨ!"));
-        if (player2.skill(30, 190, text, "#3b82f6")) setTimeout(() => checkHit(player2, player1, 22), 150); 
+        let text = player2.heroType === 'vosi' ? "⚡ LÔI QUYỀN LIÊN HOÀN!" : (player2.heroType === 'kiemsi' ? "⚔️ PHONG TRẢM KHÍ!" : (player2.heroType === 'phapsu' ? "🪄 HỎA CẦU THUẬT!" : "🏹 LIÊN HOÀN TIỄN!"));
+        let range = player2.heroType === 'cungthu' ? 240 : 190;
+        if (player2.skill(30, range, text, "#3b82f6")) setTimeout(() => checkHit(player2, player1, 22), 150); 
     }
     if (e.key === "l" || e.key === "L" || e.key === "3") { 
-        let text = player2.heroType === 'vosi' ? "⚡⚡ CÚ ĐẤM SẤM SÉT!" : (player2.heroType === 'kiemsi' ? "💥 LẠC DIỆP TRẢM!" : (player2.heroType === 'phapsu' ? "☄️ THIÊN HỎA BẠO KÍCH!" : "🎯 BÁCH PHÁT BÁCH TRÚNG!"));
-        if (player2.skill(50, 270, text, "#a855f7")) setTimeout(() => checkHit(player2, player1, 35), 180); 
+        let text = player2.heroType === 'vosi' ? "⚡⚡ CÚ ĐẤM SẤM SÉT!" : (player2.heroType === 'kiemsi' ? "💥 HỎA LONG TRẢM KÍCH!" : (player2.heroType === 'phapsu' ? "☄️ THIÊN HỎA BẠO KÍCH!" : "🎯 BÁCH PHÁT BÁCH TRÚNG!"));
+        let range = player2.heroType === 'cungthu' ? 340 : 270;
+        if (player2.skill(50, range, text, "#a855f7")) setTimeout(() => checkHit(player2, player1, 35), 180); 
     }
 });
 
