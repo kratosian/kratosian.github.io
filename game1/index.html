@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>4 Heroes Fighting - P2P & Bot Mode</title>
+<title>4 Heroes Fighting - Rematch & Bot Mode</title>
 <!-- Thư viện PeerJS để kết nối trực tiếp 2 máy -->
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
@@ -169,7 +169,8 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
 
     <div id="game-over">
         <h1 id="winner-text">BẠN THẮNG!</h1>
-        <button class="btn-ui" onclick="location.reload()">VỀ TRANG CHỦ</button>
+        <button class="btn-ui" style="background: #22c55e; color: white;" onclick="requestRematch()">🔄 ĐẤU LẠI (VÁN MỚI)</button>
+        <button class="btn-ui" style="background: #ef4444; color: white;" onclick="location.reload()">VỀ TRANG CHỦ</button>
     </div>
 
     <div class="controls-info">
@@ -192,7 +193,7 @@ const groundHeight = 60;
 let gameStarted = false;
 let gameOver = false;
 let msgTimeout = null;
-let gameMode = 'bot'; // 'bot' hoặc 'online'
+let gameMode = 'bot';
 
 let peer = null;
 let conn = null;
@@ -209,7 +210,6 @@ function showMode(mode) {
     if (mode === 'online') {
         document.getElementById("online-overlay").style.display = "flex";
     } else {
-        // Chế độ Bot: Vào thẳng màn chọn nhân vật, P2 tự động là Máy chọn ngẫu nhiên
         isHost = true;
         setupBotSelectScreen();
         document.getElementById("char-select-screen").style.display = "flex";
@@ -226,12 +226,10 @@ function setupBotSelectScreen() {
     document.getElementById("my-card-title").innerText = "BẠN (P1)";
     document.getElementById("enemy-card-title").innerText = "MÁY (BOT)";
     
-    // Random bot hero
     enemyHeroType = heroList[Math.floor(Math.random() * heroList.length)];
     document.getElementById("p2-select-area").innerHTML = `<div style="font-size: 18px; color: #facc15; font-weight: bold; margin-top: 20px;">🤖 MÁY CHỌN: ${nameMap[enemyHeroType]}</div>`;
 }
 
-// Tạo mã phòng ngẫu nhiên 5 chữ số cho chế độ Online
 function generateRandomRoomId() {
     return Math.floor(10000 + Math.random() * 90000).toString();
 }
@@ -302,6 +300,9 @@ function setupConnection() {
         } else if (data.type === 'start') {
             enemyHeroType = data.hero;
             startBattleGame();
+        } else if (data.type === 'rematch') {
+            // Khi người kia bấm đấu lại, tự động bật màn hình chọn nhân vật
+            triggerRematchScreen();
         } else if (data.type === 'input') {
             if (isHost) {
                 player2.x = data.x; player2.y = data.y; player2.facing = data.facing;
@@ -335,7 +336,15 @@ function startBattle() {
 }
 
 function startBattleGame() {
+    document.getElementById("game-over").style.display = "none";
     document.getElementById("char-select-screen").style.display = "none";
+    
+    // Reset chỉ số nhân vật
+    player1.hp = 100; player1.mp = 0; player1.x = canvas.width * 0.18; player1.y = 100; player1.updateUI();
+    player2.hp = 100; player2.mp = 0; player2.x = canvas.width * 0.72; player2.y = 100; player2.updateUI();
+    
+    gameOver = false;
+
     if (gameMode === 'bot') {
         player1.setHero(myHeroType);
         player2.setHero(enemyHeroType);
@@ -349,6 +358,29 @@ function startBattleGame() {
         }
     }
     gameStarted = true;
+}
+
+function requestRematch() {
+    if (gameMode === 'bot') {
+        // Đấu với máy thì bấm đấu lại là ra màn chọn nhân vật luôn
+        setupBotSelectScreen();
+        document.getElementById("game-over").style.display = "none";
+        document.getElementById("char-select-screen").style.display = "flex";
+    } else {
+        // Online: gửi tín hiệu sang máy đối thủ
+        if (conn && conn.open) {
+            conn.send({ type: 'rematch' });
+        }
+        triggerRematchScreen();
+    }
+}
+
+function triggerRematchScreen() {
+    document.getElementById("game-over").style.display = "none";
+    document.getElementById("char-select-screen").style.display = "flex";
+    if (gameMode === 'online') {
+        document.getElementById("enemy-chosen-text").innerText = "Chờ chọn nhân vật...";
+    }
 }
 
 function showMessage(text, color) {
@@ -537,7 +569,6 @@ function heightCheck(a, d) {
     return a.y + a.height > d.y;
 }
 
-// LOGIC ĐIỀU KHIỂN BOT AI
 function updateBotAI() {
     if (!gameStarted || gameOver || gameMode !== 'bot') return;
 
@@ -547,21 +578,18 @@ function updateBotAI() {
 
     player2.botActionTimer++;
 
-    // Di chuyển hướng về phía người chơi
     if (dist > 90) {
         player2.velocity.x = dx > 0 ? 4 : -4;
     } else if (dist < 60) {
-        player2.velocity.x = dx > 0 ? -3 : 3; // Lùi nhẹ nếu quá sát
+        player2.velocity.x = dx > 0 ? -3 : 3;
     } else {
         player2.velocity.x = 0;
     }
 
-    // Nhảy ngẫu nhiên né đòn hoặc áp sát
     if (player2.botActionTimer % 70 === 0 && player2.y >= canvas.height - groundHeight - player2.height) {
         if (Math.random() < 0.6) player2.velocity.y = -15;
     }
 
-    // Tấn công khi ở cự ly gần
     if (dist < 110 && player2.botActionTimer % 35 === 0) {
         let rand = Math.random();
         if (rand < 0.4 && player2.mp >= 50) {
