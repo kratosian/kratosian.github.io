@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kratos 1v1 Fighting - Prototype</title>
+  <title>Kratos 1v1 Fighting - Sprite Version</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -117,8 +117,8 @@
   </div>
 
   <div class="controls-info">
-    <b>P1:</b> A/D (Chạy), W (Nhảy), U (Đánh - Tích MP), I (Skill 1 - 30MP), O (Skill 2 - 50MP), P (Chiêu cuối - 80MP)<br>
-    <b>P2:</b> ←/→ (Chạy), ↑ (Nhảy), Num 1 (Đánh), Num 2 (Skill 1), Num 3 (Skill 2), Num 4 (Chiêu cuối)
+    <b>P1 (Võ sĩ):</b> A/D (Chạy), W (Nhảy), U (Đánh - Tích MP), I (Skill 1 - 30MP), O (Skill 2 - 50MP), P (Chiêu cuối - 80MP)<br>
+    <b>P2 (Kiếm sĩ):</b> ←/→ (Chạy), ↑ (Nhảy), Num 1 (Đánh), Num 2 (Skill 1), Num 3 (Skill 2), Num 4 (Chiêu cuối)
   </div>
 
   <script>
@@ -128,43 +128,59 @@
     const gravity = 0.7;
     const groundY = 380;
 
+    // Load Sprite Sheet Nhân Vật
+    const spriteSheet = new Image();
+    spriteSheet.src = 'hero.png';
+
     class Player {
-      constructor({ x, y, color, facing, hpId, mpId }) {
+      constructor({ x, y, facing, hpId, mpId, spriteCrop }) {
         this.x = x;
         this.y = y;
-        this.width = 40;
-        this.height = 80;
+        this.width = 65;
+        this.height = 95;
         this.velocity = { x: 0, y: 0 };
-        this.color = color;
         this.facing = facing;
         this.hp = 100;
         this.mp = 0;
         this.hpId = hpId;
         this.mpId = mpId;
+        this.spriteCrop = spriteCrop; // Tọa độ cắt ảnh
         this.isAttacking = false;
         this.attackType = 'normal';
         this.attackBox = { x: 0, y: 0, width: 60, height: 40 };
       }
 
       draw() {
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-
-        // Mắt hướng quay mặt
-        ctx.fillStyle = '#fff';
-        const eyeX = this.facing === 'right' ? this.x + 25 : this.x + 5;
-        ctx.fillRect(eyeX, this.y + 15, 10, 10);
+        ctx.save();
+        
+        // Vẽ nhân vật từ sprite hero.png
+        if (this.facing === 'left') {
+          ctx.translate(this.x + this.width, this.y);
+          ctx.scale(-1, 1);
+          ctx.drawImage(
+            spriteSheet, 
+            this.spriteCrop.x, this.spriteCrop.y, this.spriteCrop.w, this.spriteCrop.h,
+            0, 0, this.width, this.height
+          );
+        } else {
+          ctx.drawImage(
+            spriteSheet, 
+            this.spriteCrop.x, this.spriteCrop.y, this.spriteCrop.w, this.spriteCrop.h,
+            this.x, this.y, this.width, this.height
+          );
+        }
+        ctx.restore();
 
         // Hiệu ứng Hitbox đòn đánh
         if (this.isAttacking) {
-          if (this.attackType === 'normal') ctx.fillStyle = 'rgba(255, 230, 0, 0.6)';
-          if (this.attackType === 'skill1') ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
-          if (this.attackType === 'skill2') ctx.fillStyle = 'rgba(234, 179, 8, 0.7)';
-          if (this.attackType === 'ultimate') ctx.fillStyle = 'rgba(168, 85, 247, 0.8)';
+          if (this.attackType === 'normal') ctx.fillStyle = 'rgba(255, 230, 0, 0.5)';
+          if (this.attackType === 'skill1') ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
+          if (this.attackType === 'skill2') ctx.fillStyle = 'rgba(234, 179, 8, 0.6)';
+          if (this.attackType === 'ultimate') ctx.fillStyle = 'rgba(168, 85, 247, 0.7)';
 
           const boxX = this.facing === 'right' ? this.x + this.width : this.x - this.attackBox.width;
           this.attackBox.x = boxX;
-          this.attackBox.y = this.y + 10;
+          this.attackBox.y = this.y + 20;
           ctx.fillRect(this.attackBox.x, this.attackBox.y, this.attackBox.width, this.attackBox.height);
         }
       }
@@ -188,7 +204,7 @@
 
       attack(type = 'normal', boxWidth = 60, costMP = 0) {
         if (this.isAttacking) return false;
-        if (this.mp < costMP) return false; // Không đủ MP
+        if (this.mp < costMP) return false;
 
         this.mp -= costMP;
         this.updateUI();
@@ -208,7 +224,7 @@
 
       takeDamage(amount) {
         this.hp = Math.max(0, this.hp - amount);
-        this.addMP(10); // +10 MP khi bị đánh trúng
+        this.addMP(10);
         this.updateUI();
       }
 
@@ -218,8 +234,16 @@
       }
     }
 
-    const player1 = new Player({ x: 150, y: 200, color: '#ef4444', facing: 'right', hpId: 'p1-hp', mpId: 'p1-mp' });
-    const player2 = new Player({ x: 610, y: 200, color: '#3b82f6', facing: 'left', hpId: 'p2-hp', mpId: 'p2-mp' });
+    // Cắt góc ảnh nhân vật Võ sĩ (P1) và Kiếm sĩ (P2)
+    const player1 = new Player({ 
+      x: 150, y: 200, facing: 'right', hpId: 'p1-hp', mpId: 'p1-mp',
+      spriteCrop: { x: 190, y: 190, w: 70, h: 100 } 
+    });
+
+    const player2 = new Player({ 
+      x: 610, y: 200, facing: 'left', hpId: 'p2-hp', mpId: 'p2-mp',
+      spriteCrop: { x: 700, y: 190, w: 70, h: 100 } 
+    });
 
     const keys = {
       a: false, d: false, w: false,
@@ -227,7 +251,7 @@
     };
 
     window.addEventListener('keydown', (e) => {
-      // Controls P1
+      // P1 Controls
       if (e.key === 'a' || e.key === 'A') keys.a = true;
       if (e.key === 'd' || e.key === 'D') keys.d = true;
       if (e.key === 'w' || e.key === 'W') keys.w = true;
@@ -245,7 +269,7 @@
         if (player1.attack('ultimate', 160, 80)) checkHit(player1, player2, 50);
       }
 
-      // Controls P2
+      // P2 Controls
       if (e.key === 'ArrowLeft') keys.ArrowLeft = true;
       if (e.key === 'ArrowRight') keys.ArrowRight = true;
       if (e.key === 'ArrowUp') keys.ArrowUp = true;
@@ -276,7 +300,7 @@
 
     function checkHit(attacker, defender, damage) {
       const boxX = attacker.facing === 'right' ? attacker.x + attacker.width : attacker.x - attacker.attackBox.width;
-      const boxY = attacker.y + 10;
+      const boxY = attacker.y + 20;
 
       if (
         boxX < defender.x + defender.width &&
@@ -285,7 +309,7 @@
         boxY + attacker.attackBox.height > defender.y
       ) {
         defender.takeDamage(damage);
-        attacker.addMP(15); // +15 MP khi đánh trúng
+        attacker.addMP(15);
 
         if (defender.hp === 0) {
           document.getElementById('winner-text').innerText = (attacker === player1 ? 'P1 (VÕ SĨ)' : 'P2 (KIẾM SĨ)') + ' THẮNG!';
@@ -332,7 +356,13 @@
       }
     }
 
-    animate();
+    spriteSheet.onload = () => {
+      animate();
+    };
+    // Nếu ảnh đã load xong sẵn từ cache
+    if (spriteSheet.complete) {
+      animate();
+    }
   </script>
 </body>
 </html>
