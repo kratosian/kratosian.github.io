@@ -213,7 +213,7 @@ const heroList = ['vosi', 'kiemsi', 'phapsu', 'cungthu'];
 
 // Tải bức ảnh tổng hợp 4 nhân vật
 const fighterImage = new Image();
-fighterImage.src = 'hero.jpg';
+fighterImage.src = 'hero.jpg';[cite: 2]
 
 function showMode(mode) {
     gameMode = mode;
@@ -408,7 +408,7 @@ function showMessage(text, color) {
 
 class Player {
     constructor({ x, facing, hpId, mpId, heroType, isP1 }) {
-        this.x = x; this.y = 100; this.width = 100; this.height = 100;
+        this.x = x; this.y = 100; this.width = 110; this.height = 110;
         this.velocity = { x: 0, y: 0 }; this.facing = facing;
         this.hp = 100; this.mp = 0; this.hpId = hpId; this.mpId = mpId; this.isP1 = isP1;
         this.heroType = heroType; 
@@ -445,31 +445,27 @@ class Player {
 
     renderSprite() {
         if (fighterImage.complete && fighterImage.naturalWidth !== 0) {
+            // Lấy đúng vị trí 4 ô nhân vật (2 cột, 2 hàng) từ bức ảnh chung
             let colIndex = 0, rowIndex = 0;
             if (this.heroType === 'vosi') { colIndex = 0; rowIndex = 0; }
             else if (this.heroType === 'kiemsi') { colIndex = 1; rowIndex = 0; }
             else if (this.heroType === 'phapsu') { colIndex = 0; rowIndex = 1; }
             else if (this.heroType === 'cungthu') { colIndex = 1; rowIndex = 1; }
 
-            const sectionWidth = fighterImage.width / 2;
-            const sectionHeight = fighterImage.height / 2;
-            const srcWidth = sectionWidth / 4;
-            const srcHeight = sectionHeight / 4;
+            const halfW = fighterImage.width / 2;
+            const halfH = fighterImage.height / 2;
             
-            let animRow = 0;
-            if (this.state === 'walk') animRow = 1;
-            if (this.state === 'attack') animRow = 2;
-
-            const sourceX = (colIndex * sectionWidth) + (this.currentFrame * srcWidth);
-            const sourceY = (rowIndex * sectionHeight) + (animRow * srcHeight);
+            // Cắt toàn bộ vùng của ô nhân vật đó để hiển thị sắc nét trọn vẹn
+            const sourceX = colIndex * halfW;
+            const sourceY = rowIndex * halfH;
 
             ctx.save();
             if (this.facing === "left") {
                 ctx.translate(this.x + this.width, this.y);
                 ctx.scale(-1, 1);
-                ctx.drawImage(fighterImage, sourceX, sourceY, srcWidth, srcHeight, 0, 0, this.width, this.height);
+                ctx.drawImage(fighterImage, sourceX, sourceY, halfW, halfH, 0, 0, this.width, this.height);
             } else {
-                ctx.drawImage(fighterImage, sourceX, sourceY, srcWidth, srcHeight, this.x, this.y, this.width, this.height);
+                ctx.drawImage(fighterImage, sourceX, sourceY, halfW, halfH, this.x, this.y, this.width, this.height);
             }
             ctx.restore();
         } else {
@@ -496,12 +492,6 @@ class Player {
 
     update() {
         if (this.hurtTimer > 0) this.hurtTimer--;
-
-        this.frameTimer++;
-        if (this.frameTimer >= 8) {
-            this.frameTimer = 0;
-            this.currentFrame = (this.currentFrame + 1) % 4;
-        }
 
         if (this.attackTimer > 0) {
             this.attackTimer--;
@@ -531,7 +521,6 @@ class Player {
         if (this.isAttacking || this.hp <= 0) return false;
         this.isAttacking = true; this.hitDone = false; this.attackTimer = 15;
         this.state = 'attack';
-        this.currentFrame = 0;
         return true;
     }
 
@@ -541,7 +530,6 @@ class Player {
         this.mp -= cost; this.updateUI();
         this.isAttacking = true; this.hitDone = false; this.attackTimer = 22;
         this.state = 'attack';
-        this.currentFrame = 0;
         if (this.isP1 || gameMode === 'bot') showMessage(text, color);
         return true;
     }
