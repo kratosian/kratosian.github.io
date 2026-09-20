@@ -211,6 +211,10 @@ let enemyHeroType = 'kiemsi';
 const nameMap = { vosi: "VÕ SĨ", kiemsi: "KIẾM SĨ", phapsu: "PHÁP SƯ", cungthu: "CUNG THỦ" };
 const heroList = ['vosi', 'kiemsi', 'phapsu', 'cungthu'];
 
+// Tải bức ảnh tổng hợp 4 nhân vật
+const fighterImage = new Image();
+fighterImage.src = 'hero.jpg';[cite: 2]
+
 function showMode(mode) {
     gameMode = mode;
     document.getElementById("mode-select-screen").style.display = "none";
@@ -395,10 +399,16 @@ function showMessage(text, color) {
 
 class Player {
     constructor({ x, facing, hpId, mpId, heroType, isP1 }) {
-        this.x = x; this.y = 100; this.width = 90; this.height = 140;
+        this.x = x; this.y = 100; this.width = 100; this.height = 100;
         this.velocity = { x: 0, y: 0 }; this.facing = facing;
         this.hp = 100; this.mp = 0; this.hpId = hpId; this.mpId = mpId; this.isP1 = isP1;
-        this.heroType = heroType; this.frame = 0; this.animTimer = 0;
+        this.heroType = heroType; 
+        
+        this.state = 'idle'; 
+        this.currentFrame = 0;
+        this.frameTimer = 0;
+        this.frameInterval = 10;
+        
         this.isAttacking = false; this.attackTimer = 0; this.hitDone = false;
         this.attackBox = { width: 85, height: 90 }; this.hurtTimer = 0;
         this.botActionTimer = 0;
@@ -411,48 +421,57 @@ class Player {
         document.getElementById(elId).innerText = `${label}: ${nameMap[type]}`;
     }
 
-    drawHeroPixel() {
+    draw() {
         ctx.save();
-        if (this.facing === "left") { ctx.translate(this.x + this.width, this.y); ctx.scale(-1, 1); }
-        else { ctx.translate(this.x, this.y); }
-        ctx.scale(2.2, 2.2);
-        let armOffset = this.isAttacking ? 10 : 0;
-        let legOffset = Math.sin(this.frame) * 3;
-        let bodyY = Math.sin(this.animTimer * 0.1) * 1;
-
-        if (this.heroType === "vosi") {
-            ctx.fillStyle = "#ffdbac"; ctx.fillRect(12, 4 + bodyY, 16, 14);
-            ctx.fillStyle = "#1e1b18"; ctx.fillRect(10, 2 + bodyY, 20, 6);
-            ctx.fillStyle = "#38bdf8"; ctx.fillRect(10, 7 + bodyY, 20, 3);
-            ctx.fillStyle = "#e0a96d"; ctx.fillRect(10, 18 + bodyY, 20, 22);
-            ctx.fillStyle = "#0284c7"; ctx.fillRect(22 + armOffset, 20 + bodyY, 10, 10);
-            ctx.fillStyle = "#0369a1"; ctx.fillRect(11, 38 + bodyY, 18, 12);
-            ctx.fillStyle = "#e0a96d"; ctx.fillRect(12 + legOffset, 50, 7, 12); ctx.fillRect(21 - legOffset, 50, 7, 12);
-        } else if (this.heroType === "kiemsi") {
-            ctx.fillStyle = "#fef08a"; ctx.fillRect(10, 2 + bodyY, 20, 8);
-            ctx.fillStyle = "#ffdbac"; ctx.fillRect(12, 8 + bodyY, 16, 10);
-            ctx.fillStyle = "#1d4ed8"; ctx.fillRect(10, 18 + bodyY, 20, 22);
-            ctx.fillStyle = "#94a3b8"; ctx.fillRect(13, 20 + bodyY, 14, 18);
-            ctx.fillStyle = "#e2e8f0";
-            if (this.isAttacking) ctx.fillRect(28, 12 + bodyY, 5, 26);
-            else ctx.fillRect(24, 10 + bodyY, 4, 20);
-            ctx.fillStyle = "#1e293b"; ctx.fillRect(12 + legOffset, 48, 7, 14); ctx.fillRect(21 - legOffset, 48, 7, 14);
-        } else if (this.heroType === "phapsu") {
-            ctx.fillStyle = "#1e1b18"; ctx.fillRect(10, 2 + bodyY, 20, 10);
-            ctx.fillStyle = "#ffdbac"; ctx.fillRect(12, 10 + bodyY, 16, 10);
-            ctx.fillStyle = "#000000"; ctx.fillRect(14, 13 + bodyY, 5, 3); ctx.fillRect(21, 13 + bodyY, 5, 3);
-            ctx.fillStyle = "#0f172a"; ctx.fillRect(8, 20 + bodyY, 24, 28);
-            ctx.fillStyle = this.isP1 ? "#ef4444" : "#a855f7"; ctx.fillRect(18, 20 + bodyY, 4, 28);
-            ctx.fillStyle = "#78350f"; ctx.fillRect(24 + armOffset, 22 + bodyY, 12, 3);
-        } else if (this.heroType === "cungthu") {
-            ctx.fillStyle = "#fef08a"; ctx.fillRect(8, 2 + bodyY, 24, 12);
-            ctx.fillStyle = "#ffdbac"; ctx.fillRect(12, 8 + bodyY, 16, 10);
-            ctx.fillRect(6, 10 + bodyY, 5, 3); ctx.fillRect(29, 10 + bodyY, 5, 3);
-            ctx.fillStyle = "#15803d"; ctx.fillRect(10, 18 + bodyY, 20, 22);
-            ctx.fillStyle = "#78350f"; ctx.fillRect(24 + armOffset, 14 + bodyY, 4, 24);
-            ctx.fillStyle = "#166534"; ctx.fillRect(12 + legOffset, 48, 7, 14); ctx.fillRect(21 - legOffset, 48, 7, 14);
-        }
+        ctx.fillStyle = "rgba(0,0,0,0.3)";
+        ctx.beginPath(); ctx.ellipse(this.x + this.width / 2, canvas.height - groundHeight + 4, 35, 7, 0, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
+
+        if (this.hurtTimer > 0 && this.hurtTimer % 4 < 2) {
+            ctx.save(); ctx.globalAlpha = 0.4; this.renderSprite(); ctx.restore();
+        } else {
+            this.renderSprite();
+        }
+        this.drawAttackRange();
+    }
+
+    renderSprite() {
+        if (fighterImage.complete && fighterImage.naturalWidth !== 0) {
+            // Xác định vị trí lưới 2x2 cho 4 nhân vật trong bức ảnh chung
+            let colIndex = 0, rowIndex = 0;
+            if (this.heroType === 'vosi') { colIndex = 0; rowIndex = 0; }
+            else if (this.heroType === 'kiemsi') { colIndex = 1; rowIndex = 0; }
+            else if (this.heroType === 'phapsu') { colIndex = 0; rowIndex = 1; }
+            else if (this.heroType === 'cungthu') { colIndex = 1; rowIndex = 1; }
+
+            const sectionWidth = fighterImage.width / 2;
+            const sectionHeight = fighterImage.height / 2;
+            
+            const srcWidth = sectionWidth / 4;
+            const srcHeight = sectionHeight / 4;
+            
+            // Trạng thái hoạt ảnh động
+            let animRow = 0;
+            if (this.state === 'walk') animRow = 1;
+            if (this.state === 'attack') animRow = 2;
+
+            const sourceX = (colIndex * sectionWidth) + (this.currentFrame * srcWidth);
+            const sourceY = (rowIndex * sectionHeight) + (animRow * srcHeight);
+
+            ctx.save();
+            if (this.facing === "left") {
+                ctx.translate(this.x + this.width, this.y);
+                ctx.scale(-1, 1);
+                ctx.drawImage(fighterImage, sourceX, sourceY, srcWidth, srcHeight, 0, 0, this.width, this.height);
+            } else {
+                ctx.drawImage(fighterImage, sourceX, sourceY, srcWidth, srcHeight, this.x, this.y, this.width, this.height);
+            }
+            ctx.restore();
+        } else {
+            // Fallback nếu chưa load được ảnh
+            ctx.fillStyle = this.isP1 ? '#ef4444' : '#3b82f6';
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
     }
 
     drawAttackRange() {
@@ -471,28 +490,23 @@ class Player {
         ctx.restore();
     }
 
-    draw() {
-        ctx.save();
-        ctx.fillStyle = "rgba(0,0,0,0.3)";
-        ctx.beginPath(); ctx.ellipse(this.x + this.width / 2, canvas.height - groundHeight + 4, 35, 7, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.restore();
-
-        if (this.hurtTimer > 0 && this.hurtTimer % 4 < 2) {
-            ctx.save(); ctx.globalAlpha = 0.4; this.drawHeroPixel(); ctx.restore();
-        } else {
-            this.drawHeroPixel();
-        }
-        this.drawAttackRange();
-    }
-
     update() {
         if (this.hurtTimer > 0) this.hurtTimer--;
-        this.animTimer++;
-        if (this.animTimer % 8 === 0) this.frame = (this.frame + 1) % 4;
+
+        // Cập nhật frame hoạt ảnh sprite
+        this.frameTimer++;
+        if (this.frameTimer >= 8) {
+            this.frameTimer = 0;
+            this.currentFrame = (this.currentFrame + 1) % 4;
+        }
 
         if (this.attackTimer > 0) {
             this.attackTimer--;
-            if (this.attackTimer <= 0) { this.isAttacking = false; this.hitDone = false; }
+            if (this.attackTimer <= 0) { 
+                this.isAttacking = false; 
+                this.hitDone = false; 
+                this.state = 'idle';
+            }
         }
 
         this.x += this.velocity.x;
@@ -513,6 +527,8 @@ class Player {
     attack() {
         if (this.isAttacking || this.hp <= 0) return false;
         this.isAttacking = true; this.hitDone = false; this.attackTimer = 15;
+        this.state = 'attack';
+        this.currentFrame = 0;
         return true;
     }
 
@@ -521,6 +537,8 @@ class Player {
         if (this.mp < cost) { if (this.isP1) showMessage("CHƯA ĐỦ MP!", "#a855f7"); return false; }
         this.mp -= cost; this.updateUI();
         this.isAttacking = true; this.hitDone = false; this.attackTimer = 22;
+        this.state = 'attack';
+        this.currentFrame = 0;
         if (this.isP1 || gameMode === 'bot') showMessage(text, color);
         return true;
     }
@@ -580,10 +598,13 @@ function updateBotAI() {
 
     if (dist > 90) {
         player2.velocity.x = dx > 0 ? 4 : -4;
+        if (player2.state !== 'attack') player2.state = 'walk';
     } else if (dist < 60) {
         player2.velocity.x = dx > 0 ? -3 : 3;
+        if (player2.state !== 'attack') player2.state = 'walk';
     } else {
         player2.velocity.x = 0;
+        if (player2.state !== 'attack') player2.state = 'idle';
     }
 
     if (player2.botActionTimer % 70 === 0 && player2.y >= canvas.height - groundHeight - player2.height) {
@@ -653,9 +674,11 @@ window.addEventListener("keydown", (e) => {
     if (e.key.toLowerCase() === 'a') {
         myPlayer.velocity.x = -6;
         myPlayer.facing = "left";
+        if (myPlayer.state !== 'attack') myPlayer.state = 'walk';
     } else if (e.key.toLowerCase() === 'd') {
         myPlayer.velocity.x = 6;
         myPlayer.facing = "right";
+        if (myPlayer.state !== 'attack') myPlayer.state = 'walk';
     } else if (e.key.toLowerCase() === 'w' && myPlayer.y >= canvas.height - groundHeight - myPlayer.height) {
         myPlayer.velocity.y = -15;
     } else if (e.key.toLowerCase() === 'u') {
@@ -671,6 +694,7 @@ window.addEventListener("keyup", (e) => {
     let myPlayer = (gameMode === 'online' && !isHost) ? player2 : player1;
     if (e.key.toLowerCase() === 'a' || e.key.toLowerCase() === 'd') {
         myPlayer.velocity.x = 0;
+        if (myPlayer.state !== 'attack') myPlayer.state = 'idle';
     }
 });
 
@@ -704,7 +728,13 @@ function animate() {
     player2.update();
 }
 
-animate();
+fighterImage.onload = () => {
+    animate();
+};
+
+if (fighterImage.complete) {
+    animate();
+}
 </script>
 </body>
 </html>
