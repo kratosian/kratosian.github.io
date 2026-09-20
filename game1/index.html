@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Street Fighter Web Game - Throw Update</title>
+    <title>Street Fighter Classic - Đấm Chay & Vật</title>
     <style>
         body {
             margin: 0;
@@ -27,7 +27,7 @@
         }
         canvas {
             display: block;
-            background: linear-gradient(to bottom, #4a90e2, #eef2f3);
+            background: linear-gradient(to bottom, #3b82f6, #93c5fd);
         }
         #ui {
             position: absolute;
@@ -106,9 +106,8 @@
     </div>
 
     <div id="controls">
-        <button onclick="handleAction('attack')">Đấm / Vật (U)</button>
-        <button onclick="handleAction('skill1')">Hadouken (I)</button>
-        <button onclick="handleAction('skill2')">Shoryuken (O)</button>
+        <button onclick="handleAction('punch')">Đấm Thường (U)</button>
+        <button onclick="handleAction('kick')">Đá Thường (I)</button>
     </div>
 
 <script>
@@ -117,7 +116,6 @@
 
     let gameStarted = true;
     let gameOver = false;
-    let gameMode = 'bot'; // Mặc định chơi với Bot
 
     class Fighter {
         constructor(x, y, color, isP1) {
@@ -139,16 +137,16 @@
             ctx.fillStyle = this.color;
             ctx.fillRect(this.x, this.y, this.width, this.height);
 
-            // Vẽ mắt định hướng mặt nhân vật
+            // Mắt định hướng mặt nhân vật
             ctx.fillStyle = "#fff";
             let eyeX = this.facing === "right" ? this.x + 35 : this.x + 10;
             ctx.fillRect(eyeX, this.y + 20, 10, 10);
 
-            // Hiệu ứng khi đang tấn công/vật
+            // Hiệu ứng tay/chân khi ra đòn
             if (this.isAttacking) {
                 ctx.fillStyle = "#f97316";
-                let handX = this.facing === "right" ? this.x + this.width : this.x - 30;
-                ctx.fillRect(handX, this.y + 40, 30, 15);
+                let limbX = this.facing === "right" ? this.x + this.width : this.x - 25;
+                ctx.fillRect(limbX, this.y + 40, 25, 12);
             }
         }
 
@@ -170,28 +168,13 @@
             if (this.x < 0) this.x = 0;
             if (this.x + this.width > canvas.width) this.x = canvas.width - this.width;
 
-            // Giảm thời gian hồi đòn đánh
+            // Hồi phục trạng thái đòn đánh
             if (this.isAttacking) {
                 this.attackTimer--;
                 if (this.attackTimer <= 0) {
                     this.isAttacking = false;
                 }
             }
-        }
-
-        attack() {
-            if (this.isAttacking) return false;
-            this.isAttacking = true;
-            this.attackTimer = 15;
-            return true;
-        }
-
-        skill(dmg, pushBack, text, color) {
-            if (this.isAttacking) return false;
-            this.isAttacking = true;
-            this.attackTimer = 25;
-            showMessage(text, color);
-            return true;
         }
 
         takeDamage(amount) {
@@ -223,55 +206,56 @@
         document.getElementById("p2-health").style.width = player2.health + "%";
     }
 
-    // Xử lý hành động tấn công và Vật (Throw)
+    // Xử lý đòn đánh chay và cơ chế Vật cận chiến
     function handleAction(type) {
         if (!gameStarted || gameOver) return;
         let myPlayer = player1;
         let enemyPlayer = player2;
-        let skillText = "";
 
-        if (type === 'attack') {
-            // Kiểm tra khoảng cách: nếu đứng sát nhau (< 70px) thì thực hiện Đòn Vật (Throw)
-            let dist = Math.abs(myPlayer.x - enemyPlayer.x);
+        if (myPlayer.isAttacking) return;
+
+        let dist = Math.abs(myPlayer.x - enemyPlayer.x);
+
+        if (type === 'punch') {
+            // Nếu đứng áp sát nhau (< 70px): Thực hiện ĐÒN VẬT (Throw)
             if (dist < 70) {
-                skillText = "THROW!";
-                if (myPlayer.isAttacking) return;
+                showMessage("THROW!", "#f97316");
                 myPlayer.isAttacking = true;
                 myPlayer.attackTimer = 18;
-                showMessage(skillText, "#f97316");
-                
-                // Gây sát thương và tung đối thủ bay ngược ra sau
+
                 setTimeout(() => {
                     enemyPlayer.takeDamage(15);
                     let pushDir = myPlayer.facing === "right" ? 1 : -1;
                     enemyPlayer.x += pushDir * 70;
-                    enemyPlayer.velocity.y = -10; // Nhấc bổng lên không trung
+                    enemyPlayer.velocity.y = -10; // Nhấc bổng đối thủ lên không trung
                 }, 100);
-            } else {
-                // Đấm thường nếu ở khoảng cách xa
-                if (myPlayer.attack()) {
-                    setTimeout(() => checkHit(player1, player2, 10), 80);
+            } 
+            // Nếu ở khoảng cách xa: Đấm thường
+            else {
+                myPlayer.isAttacking = true;
+                myPlayer.attackTimer = 12;
+                setTimeout(() => {
+                    let hitDist = Math.abs(myPlayer.x - enemyPlayer.x);
+                    if (hitDist < 70) {
+                        enemyPlayer.takeDamage(8);
+                        let pushDir = myPlayer.facing === "right" ? 1 : -1;
+                        enemyPlayer.x += pushDir * 20;
+                    }
+                }, 80);
+            }
+        } 
+        else if (type === 'kick') {
+            // Đá thường (tầm đánh xa hơn đấm một chút)
+            myPlayer.isAttacking = true;
+            myPlayer.attackTimer = 16;
+            setTimeout(() => {
+                let hitDist = Math.abs(myPlayer.x - enemyPlayer.x);
+                if (hitDist < 80) {
+                    enemyPlayer.takeDamage(12);
+                    let pushDir = myPlayer.facing === "right" ? 1 : -1;
+                    enemyPlayer.x += pushDir * 35;
                 }
-            }
-        } else if (type === 'skill1') {
-            skillText = "HADOUKEN!";
-            if (myPlayer.skill(20, 210, skillText, "#38bdf8")) {
-                setTimeout(() => checkHit(player1, player2, 20), 120);
-            }
-        } else if (type === 'skill2') {
-            skillText = "SHORYUKEN!";
-            if (myPlayer.skill(32, 280, skillText, "#facc15")) {
-                setTimeout(() => checkHit(player1, player2, 32), 150);
-            }
-        }
-    }
-
-    function checkHit(attacker, defender, damage) {
-        let dist = Math.abs(attacker.x - defender.x);
-        if (dist < 70) {
-            defender.takeDamage(damage);
-            let pushDir = attacker.facing === "right" ? 1 : -1;
-            defender.x += pushDir * 30;
+            }, 100);
         }
     }
 
@@ -287,11 +271,9 @@
         } else if (e.key === "w" || e.key === "W") {
             if (!player1.isJumping) player1.velocity.y = -12;
         } else if (e.key === "u" || e.key === "U") {
-            handleAction('attack');
+            handleAction('punch');
         } else if (e.key === "i" || e.key === "I") {
-            handleAction('skill1');
-        } else if (e.key === "o" || e.key === "O") {
-            handleAction('skill2');
+            handleAction('kick');
         }
     });
 
