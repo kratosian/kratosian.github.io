@@ -2,14 +2,14 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>4 Heroes Fighting - PC Normal / Mobile Landscape</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4 Heroes Fighting - PC Version</title>
 <!-- Thư viện PeerJS để kết nối trực tiếp 2 máy -->
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0f19; font-family: system-ui, -apple-system, sans-serif; user-select: none; -webkit-user-select: none; touch-action: none; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0f19; font-family: system-ui, -apple-system, sans-serif; user-select: none; }
 .game-container { position: relative; width: 100vw; height: 100vh; }
 canvas { display: block; width: 100%; height: 100%; background: linear-gradient(to bottom, #0f172a 0%, #1e1b4b 55%, #090d16 100%); }
 
@@ -23,91 +23,71 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
 
 .lobby-box {
     background: rgba(15, 23, 42, 0.9); border: 2px solid #334155; border-radius: 16px;
-    padding: 20px; width: 100%; max-width: 440px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    padding: 25px; width: 100%; max-width: 440px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-.lobby-title { color: #facc15; font-size: 22px; font-weight: 900; margin-bottom: 15px; text-transform: uppercase; }
-.lobby-section { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.lobby-title { color: #facc15; font-size: 24px; font-weight: 900; margin-bottom: 20px; text-transform: uppercase; }
+.lobby-section { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
 .lobby-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
 
 .input-custom {
-    width: 100%; padding: 10px; background: #1e293b; border: 2px solid #475569; border-radius: 8px;
-    color: white; font-size: 16px; text-align: center; margin-bottom: 8px; font-weight: bold; letter-spacing: 2px;
+    width: 100%; padding: 12px; background: #1e293b; border: 2px solid #475569; border-radius: 8px;
+    color: white; font-size: 16px; text-align: center; margin-bottom: 10px; font-weight: bold; letter-spacing: 2px;
 }
 .input-custom:focus { border-color: #facc15; outline: none; }
 
 .btn-custom {
-    width: 100%; padding: 12px; font-size: 15px; font-weight: 900; color: #0f172a;
+    width: 100%; padding: 14px; font-size: 16px; font-weight: 900; color: #0f172a;
     background: linear-gradient(135deg, #facc15, #f59e0b); border: none; border-radius: 8px;
-    cursor: pointer; box-shadow: 0 0 15px rgba(250,204,21,0.4); transition: all 0.2s; margin-bottom: 8px;
+    cursor: pointer; box-shadow: 0 0 15px rgba(250,204,21,0.4); transition: all 0.2s; margin-bottom: 10px;
 }
+.btn-custom:hover { filter: brightness(1.1); }
 .btn-custom:active { transform: scale(0.98); }
 
-.room-id-wrapper { display: flex; gap: 8px; margin-bottom: 8px; }
+.room-id-wrapper { display: flex; gap: 8px; margin-bottom: 10px; }
 .room-id-display {
-    flex: 1; background: #0f172a; border: 2px dashed #facc15; color: #facc15; padding: 8px;
-    border-radius: 8px; font-size: 18px; font-weight: bold; letter-spacing: 3px; display: flex; align-items: center; justify-content: center;
+    flex: 1; background: #0f172a; border: 2px dashed #facc15; color: #facc15; padding: 10px;
+    border-radius: 8px; font-size: 20px; font-weight: bold; letter-spacing: 3px; display: flex; align-items: center; justify-content: center;
 }
 .btn-copy {
-    padding: 0 12px; background: #334155; border: 2px solid #475569; color: white; font-weight: bold;
-    border-radius: 8px; cursor: pointer;
+    padding: 0 15px; background: #334155; border: 2px solid #475569; color: white; font-weight: bold;
+    border-radius: 8px; cursor: pointer; transition: background 0.2s;
 }
+.btn-copy:hover { background: #475569; }
 
-#char-select-screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: space-between; padding: 15px; position: absolute; top: 0; left: 0; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); z-index: 90; overflow-y: auto; }
-.select-title { color: #facc15; font-size: 24px; font-weight: 900; text-transform: uppercase; text-align: center; }
-.select-body { display: flex; width: 100%; max-width: 800px; justify-content: space-between; align-items: center; margin: auto 0; gap: 15px; }
-.player-card { flex: 1; background: rgba(15, 23, 42, 0.85); border: 2px solid #334155; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; align-items: center; }
+#char-select-screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: space-between; padding: 25px; position: absolute; top: 0; left: 0; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); z-index: 90; }
+.select-title { color: #facc15; font-size: 28px; font-weight: 900; text-transform: uppercase; text-align: center; }
+.select-body { display: flex; width: 100%; max-width: 800px; justify-content: space-between; align-items: center; margin: auto 0; gap: 20px; }
+.player-card { flex: 1; background: rgba(15, 23, 42, 0.85); border: 2px solid #334155; border-radius: 14px; padding: 15px; display: flex; flex-direction: column; align-items: center; }
 .p1-card { border-color: #ef4444; }
 .p2-card { border-color: #3b82f6; }
-.p-title { font-size: 16px; font-weight: 900; margin-bottom: 8px; }
-.grid-chars { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; width: 100%; }
-.char-btn { background: #1e293b; border: 2px solid #475569; border-radius: 6px; padding: 8px; color: white; font-weight: 700; cursor: pointer; text-align: center; font-size: 13px; }
+.p-title { font-size: 18px; font-weight: 900; margin-bottom: 12px; }
+.grid-chars { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; }
+.char-btn { background: #1e293b; border: 2px solid #475569; border-radius: 6px; padding: 12px; color: white; font-weight: 700; cursor: pointer; text-align: center; font-size: 14px; transition: all 0.2s; }
+.char-btn:hover { border-color: #facc15; }
 .char-btn.selected { background: #1e3a8a; border-color: #3b82f6; }
 
 /* --- HUD & TRONG GAME --- */
-.ui-layer { position: absolute; top: 12px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 10; pointer-events: none; }
+.ui-layer { position: absolute; top: 20px; left: 30px; right: 30px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 10; pointer-events: none; }
 .status-group { width: 38%; }
-.player-name { font-size: 15px; font-weight: 900; margin-bottom: 4px; text-shadow: 0 2px 5px #000; }
+.player-name { font-size: 18px; font-weight: 900; margin-bottom: 6px; text-shadow: 0 2px 5px #000; }
 .p1-color { color: #ef4444; }
 .p2-color { color: #60a5fa; text-align: right; }
-.bar-container { width: 100%; height: 16px; margin-bottom: 3px; background: rgba(15, 23, 42, 0.8); border: 2px solid white; border-radius: 6px; overflow: hidden; }
+.bar-container { width: 100%; height: 20px; margin-bottom: 4px; background: rgba(15, 23, 42, 0.8); border: 2px solid white; border-radius: 6px; overflow: hidden; }
 .health-bar { height: 100%; width: 100%; transition: width 0.1s; }
 #p1-hp { background: linear-gradient(90deg, #991b1b, #ef4444); }
 #p2-hp { width: 100%; float: right; background: linear-gradient(90deg, #60a5fa, #1d4ed8); }
-.mp-container { height: 8px; border-color: #64748b; }
+.mp-container { height: 10px; border-color: #64748b; }
 .mana-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #581c87, #a855f7); transition: width 0.1s; }
 #p2-mp { float: right; }
 
-.controls-info { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); padding: 4px 12px; border-radius: 10px; background: rgba(15,23,42,0.85); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 10px; text-align: center; z-index: 10; pointer-events: none; }
+.controls-info { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); padding: 8px 18px; border-radius: 10px; background: rgba(15,23,42,0.85); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 13px; text-align: center; z-index: 10; pointer-events: none; }
 
-#game-over { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 35px; text-align: center; background: rgba(2,6,23,0.95); border: 2px solid #facc15; border-radius: 14px; display: none; z-index: 50; }
-#winner-text { color: #facc15; font-size: 24px; font-weight: 900; margin-bottom: 12px; }
-.btn-ui { margin: 4px; padding: 8px 16px; border: none; border-radius: 6px; background: #facc15; font-weight: bold; cursor: pointer; font-size: 14px; }
-#skill-message { position: absolute; left: 50%; top: 35%; transform: translate(-50%, -50%); font-size: 26px; font-weight: 900; opacity: 0; pointer-events: none; z-index: 30; transition: opacity 0.2s; }
-
-/* --- BẢNG ĐIỀU KHIỂN CẢM ỨNG (CHỈ HIỆN KHI LÀ ĐIỆN THOẠI) --- */
-#mobile-controls {
-    position: absolute; bottom: 12px; left: 0; right: 0;
-    display: none; justify-content: space-between; padding: 0 25px; z-index: 40; pointer-events: none;
-}
-.touch-group-left { display: flex; gap: 12px; pointer-events: auto; align-items: center; }
-.touch-group-right { display: flex; gap: 12px; pointer-events: auto; align-items: center; }
-
-.touch-btn {
-    width: 60px; height: 60px; background: rgba(30, 41, 59, 0.75); border: 2px solid rgba(255, 255, 255, 0.35);
-    border-radius: 50%; color: white; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-}
-.touch-btn:active, .touch-btn.pressed { background: rgba(250, 204, 21, 0.45); border-color: #facc15; color: #facc15; }
-
-.action-btn {
-    width: 58px; height: 58px; background: rgba(239, 68, 68, 0.75); border: 2px solid rgba(255,255,255,0.4);
-    border-radius: 50%; color: white; font-weight: 900; font-size: 13px; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-}
-.action-btn:active { transform: scale(0.92); background: rgba(239, 68, 68, 1); }
-#btn-skill1 { background: rgba(56, 189, 248, 0.75); }
-#btn-skill2 { background: rgba(250, 204, 21, 0.75); color: #0f172a; }
+#game-over { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 25px 40px; text-align: center; background: rgba(2,6,23,0.95); border: 2px solid #facc15; border-radius: 14px; display: none; z-index: 50; }
+#winner-text { color: #facc15; font-size: 28px; font-weight: 900; margin-bottom: 15px; }
+.btn-ui { margin: 6px; padding: 10px 20px; border: none; border-radius: 6px; background: #facc15; font-weight: bold; cursor: pointer; font-size: 15px; transition: filter 0.2s; }
+.btn-ui:hover { filter: brightness(1.1); }
+#skill-message { position: absolute; left: 50%; top: 35%; transform: translate(-50%, -50%); font-size: 30px; font-weight: 900; opacity: 0; pointer-events: none; z-index: 30; transition: opacity 0.2s; }
 </style>
 </head>
 
@@ -131,21 +111,21 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
             <div class="lobby-section">
                 <button class="btn-custom" onclick="createRoom()">TẠO PHÒNG MỚI</button>
                 <div id="room-info-area" style="margin-top: 10px; display: none;">
-                    <div style="font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Mã phòng gồm 5 chữ số:</div>
+                    <div style="font-size: 13px; color: #94a3b8; margin-bottom: 6px;">Mã phòng gồm 5 chữ số:</div>
                     <div class="room-id-wrapper">
                         <div class="room-id-display" id="my-room-code">-----</div>
                         <button class="btn-copy" onclick="copyRoomCode()">📋 Sao chép</button>
                     </div>
-                    <div id="connection-status" style="color: #38bdf8; font-size: 13px; font-weight: bold;">Đang chờ bạn bè vào...</div>
+                    <div id="connection-status" style="color: #38bdf8; font-size: 14px; font-weight: bold;">Đang chờ bạn bè vào...</div>
                 </div>
             </div>
 
             <div class="lobby-section">
-                <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 8px; font-weight: bold;">Hoặc tham gia phòng bạn:</div>
+                <div style="font-size: 14px; color: #cbd5e1; margin-bottom: 10px; font-weight: bold;">Hoặc tham gia phòng bạn:</div>
                 <input type="text" id="join-code-input" class="input-custom" placeholder="Nhập 5 số..." maxlength="5">
                 <button class="btn-custom" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white;" onclick="joinRoom()">VÀO PHÒNG</button>
             </div>
-            <button class="btn-ui" style="background: #475569; color: white; width: 100%; margin-top: 8px;" onclick="backToModeSelect()">⬅ QUAY LẠI</button>
+            <button class="btn-ui" style="background: #475569; color: white; width: 100%; margin-top: 10px;" onclick="backToModeSelect()">⬅ QUAY LẠI</button>
         </div>
     </div>
 
@@ -162,15 +142,15 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
                     <div class="char-btn" onclick="selectMyChar('cungthu', this)">🏹 CUNG THỦ</div>
                 </div>
             </div>
-            <div style="font-size: 24px; font-weight: 900; color: #facc15;">VS</div>
+            <div style="font-size: 28px; font-weight: 900; color: #facc15;">VS</div>
             <div class="player-card p2-card">
                 <div class="p-title" style="color: #60a5fa;" id="enemy-card-title">ĐỐI THỦ (P2)</div>
                 <div id="p2-select-area">
-                    <div style="font-size: 14px; color: #cbd5e1; font-weight: bold; margin-top: 10px;" id="enemy-chosen-text">Đang chọn...</div>
+                    <div style="font-size: 15px; color: #cbd5e1; font-weight: bold; margin-top: 15px;" id="enemy-chosen-text">Đang chọn...</div>
                 </div>
             </div>
         </div>
-        <button class="btn-custom" style="max-width: 260px;" onclick="startBattle()">BẮT ĐẦU TRẬN ĐẤU ⚔️</button>
+        <button class="btn-custom" style="max-width: 300px;" onclick="startBattle()">BẮT ĐẦU TRẬN ĐẤU ⚔️</button>
     </div>
 
     <!-- HUD THANH MÁU & MP -->
@@ -180,7 +160,7 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
             <div class="bar-container"><div id="p1-hp" class="health-bar"></div></div>
             <div class="bar-container mp-container"><div id="p1-mp" class="mana-bar"></div></div>
         </div>
-        <div style="color:#facc15; font-weight:900; font-size:22px;">VS</div>
+        <div style="color:#facc15; font-weight:900; font-size:26px;">VS</div>
         <div class="status-group">
             <div id="p2-title" class="player-name p2-color">P2: KIẾM SĨ</div>
             <div class="bar-container"><div id="p2-hp" class="health-bar"></div></div>
@@ -196,22 +176,8 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
         <button class="btn-ui" style="background: #ef4444; color: white;" onclick="location.reload()">VỀ TRANG CHỦ</button>
     </div>
 
-    <!-- NÚT ĐIỀU KHIỂN CẢM ỨNG (CHỈ HIỆN KHI LÀ THIẾT BỊ DI ĐỘNG) -->
-    <div id="mobile-controls">
-        <div class="touch-group-left">
-            <div class="touch-btn" id="btn-left">◀</div>
-            <div class="touch-btn" id="btn-right">▶</div>
-            <div class="touch-btn" id="btn-jump" style="margin-left: 15px; background: rgba(16, 185, 129, 0.75);">▲</div>
-        </div>
-        <div class="touch-group-right">
-            <div class="action-btn" id="btn-attack">U</div>
-            <div class="action-btn" id="btn-skill1">I</div>
-            <div class="action-btn" id="btn-skill2">O</div>
-        </div>
-    </div>
-
-    <div class="controls-info" id="controls-text">
-        <b>PC:</b> A/D Di chuyển · W Nhảy · U Đánh · I/O Chiêu Năng Lượng
+    <div class="controls-info">
+        <b>ĐIỀU KHIỂN (PC):</b> A / D: Di chuyển · W: Nhảy · U: Đánh thường · I / O: Kỹ năng năng lượng
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -221,32 +187,16 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Kiểm tra xem người dùng đang dùng thiết bị di động (Mobile/Tablet) hay máy tính (PC)
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 900;
-
 function resizeCanvas() {
-    if (isMobile) {
-        // Trên điện thoại: Ép màn hình xoay ngang (chiều rộng luôn lớn hơn chiều cao)
-        canvas.width = Math.max(window.innerWidth, window.innerHeight);
-        canvas.height = Math.min(window.innerWidth, window.innerHeight);
-    } else {
-        // Trên máy tính: Giữ nguyên kích thước hiển thị bình thường
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 }
 
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
-// Nếu là thiết bị di động, tự động bật hiển thị phím ảo cảm ứng và ẩn hướng dẫn bàn phím PC
-if (isMobile) {
-    document.getElementById("mobile-controls").style.display = "flex";
-    document.getElementById("controls-text").style.display = "none";
-}
-
 const gravity = 0.8;
-const groundHeight = 55;
+const groundHeight = 65;
 let gameStarted = false;
 let gameOver = false;
 let msgTimeout = null;
@@ -284,7 +234,7 @@ function setupBotSelectScreen() {
     document.getElementById("enemy-card-title").innerText = "MÁY (BOT)";
     
     enemyHeroType = heroList[Math.floor(Math.random() * heroList.length)];
-    document.getElementById("p2-select-area").innerHTML = `<div style="font-size: 15px; color: #facc15; font-weight: bold; margin-top: 10px;">🤖 MÁY CHỌN: ${nameMap[enemyHeroType]}</div>`;
+    document.getElementById("p2-select-area").innerHTML = `<div style="font-size: 16px; color: #facc15; font-weight: bold; margin-top: 15px;">🤖 MÁY CHỌN: ${nameMap[enemyHeroType]}</div>`;
 }
 
 function generateRandomRoomId() {
@@ -443,7 +393,6 @@ function showMessage(text, color) {
     msgTimeout = setTimeout(() => el.style.opacity = "0", 800);
 }
 
-// --- CLASS NHÂN VẬT & LOGIC GAME ---
 class Player {
     constructor({ x, facing, hpId, mpId, heroType, isP1 }) {
         this.x = x; this.y = 100; this.width = 90; this.height = 140;
@@ -592,8 +541,6 @@ class Player {
 let player1 = new Player({ x: canvas.width * 0.18, facing: "right", hpId: "p1-hp", mpId: "p1-mp", heroType: "vosi", isP1: true });
 let player2 = new Player({ x: canvas.width * 0.72, facing: "left", hpId: "p2-hp", mpId: "p2-mp", heroType: "kiemsi", isP1: false });
 
-const keys = { a: false, d: false };
-
 function checkHit(attacker, defender, damage) {
     if (attacker.hitDone || defender.hp <= 0) return;
     const attackX = attacker.facing === "right" ? attacker.x + attacker.width : attacker.x - attacker.attackBox.width;
@@ -698,73 +645,63 @@ function handleAction(type) {
     }
 }
 
-// --- ĐIỀU KHIỂN BÀN PHÍM PC ---
-window.addEventListener("keydown", e => {
+// Lắng nghe sự kiện bàn phím PC
+window.addEventListener("keydown", (e) => {
     if (!gameStarted || gameOver) return;
     let myPlayer = (gameMode === 'online' && !isHost) ? player2 : player1;
 
-    if (e.key === "a" || e.key === "A") keys.a = true;
-    if (e.key === "d" || e.key === "D") keys.d = true;
-    if ((e.key === "w" || e.key === "W") && myPlayer.y >= canvas.height - groundHeight - myPlayer.height) {
-        myPlayer.velocity.y = -16;
+    if (e.key.toLowerCase() === 'a') {
+        myPlayer.velocity.x = -6;
+        myPlayer.facing = "left";
+    } else if (e.key.toLowerCase() === 'd') {
+        myPlayer.velocity.x = 6;
+        myPlayer.facing = "right";
+    } else if (e.key.toLowerCase() === 'w' && myPlayer.y >= canvas.height - groundHeight - myPlayer.height) {
+        myPlayer.velocity.y = -15;
+    } else if (e.key.toLowerCase() === 'u') {
+        handleAction('attack');
+    } else if (e.key.toLowerCase() === 'i') {
+        handleAction('skill1');
+    } else if (e.key.toLowerCase() === 'o') {
+        handleAction('skill2');
     }
-    if (e.key === "u" || e.key === "U") handleAction('attack');
-    if (e.key === "i" || e.key === "I") handleAction('skill1');
-    if (e.key === "o" || e.key === "O") handleAction('skill2');
 });
 
-window.addEventListener("keyup", e => {
-    if (e.key === "a" || e.key === "A") keys.a = false;
-    if (e.key === "d" || e.key === "D") keys.d = false;
-});
-
-// --- ĐIỀU KHIỂN CẢM ỨNG (CHỈ ÁP DỤNG TRÊN ĐIỆN THOẠI) ---
-const bindTouchButton = (id, onDown, onUp) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener("touchstart", (e) => { e.preventDefault(); onDown(); });
-    el.addEventListener("touchend", (e) => { e.preventDefault(); if (onUp) onUp(); });
-    el.addEventListener("mousedown", (e) => { e.preventDefault(); onDown(); });
-    el.addEventListener("mouseup", (e) => { e.preventDefault(); if (onUp) onUp(); });
-};
-
-bindTouchButton("btn-left", () => keys.a = true, () => keys.a = false);
-bindTouchButton("btn-right", () => keys.d = true, () => keys.d = false);
-bindTouchButton("btn-jump", () => {
-    if (!gameStarted || gameOver) return;
+window.addEventListener("keyup", (e) => {
     let myPlayer = (gameMode === 'online' && !isHost) ? player2 : player1;
-    if (myPlayer.y >= canvas.height - groundHeight - myPlayer.height) {
-        myPlayer.velocity.y = -16;
+    if (e.key.toLowerCase() === 'a' || e.key.toLowerCase() === 'd') {
+        myPlayer.velocity.x = 0;
     }
 });
-bindTouchButton("btn-attack", () => handleAction('attack'));
-bindTouchButton("btn-skill1", () => handleAction('skill1'));
-bindTouchButton("btn-skill2", () => handleAction('skill2'));
 
-
+// Vòng lặp game chính
 function animate() {
     requestAnimationFrame(animate);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#1e293b"; ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
+
+    // Vẽ mặt đất nền
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
+    ctx.fillStyle = "#facc15";
+    ctx.fillRect(0, canvas.height - groundHeight, canvas.width, 4);
 
     if (gameStarted && !gameOver) {
-        let myPlayer = (gameMode === 'online' && !isHost) ? player2 : player1;
-
-        myPlayer.velocity.x = keys.a ? -6 : (keys.d ? 6 : 0);
-        if (keys.a) myPlayer.facing = "left"; 
-        else if (keys.d) myPlayer.facing = "right";
-
-        if (gameMode === 'online' && conn && conn.open && (keys.a || keys.d)) {
-            conn.send({ type: 'input', x: myPlayer.x, y: myPlayer.y, facing: myPlayer.facing, action: null });
-        }
-
         if (gameMode === 'bot') {
             updateBotAI();
+        } else if (gameMode === 'online' && conn && conn.open) {
+            let myPlayer = isHost ? player1 : player2;
+            conn.send({
+                type: 'input',
+                x: myPlayer.x,
+                y: myPlayer.y,
+                facing: myPlayer.facing,
+                action: null
+            });
         }
-
-        player1.update();
-        player2.update();
     }
+
+    player1.update();
+    player2.update();
 }
 
 animate();
