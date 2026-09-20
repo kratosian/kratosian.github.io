@@ -213,7 +213,7 @@ const heroList = ['vosi', 'kiemsi', 'phapsu', 'cungthu'];
 
 // Tải bức ảnh tổng hợp 4 nhân vật
 const fighterImage = new Image();
-fighterImage.src = 'hero.jpg';[cite: 2]
+fighterImage.src = 'hero.jpg';
 
 function showMode(mode) {
     gameMode = mode;
@@ -235,10 +235,12 @@ function backToModeSelect() {
 function setupBotSelectScreen() {
     document.getElementById("select-screen-title").innerText = "CHỌN NHÂN VẬT - ĐẤU VỚI MÁY";
     document.getElementById("my-card-title").innerText = "BẠN (P1)";
+    document.getElementById("my-card-title").style.color = "#ef4444";
     document.getElementById("enemy-card-title").innerText = "MÁY (BOT)";
+    document.getElementById("enemy-card-title").style.color = "#60a5fa";
     
     enemyHeroType = heroList[Math.floor(Math.random() * heroList.length)];
-    document.getElementById("p2-select-area").innerHTML = `<div style="font-size: 16px; color: #facc15; font-weight: bold; margin-top: 15px;">🤖 MÁY CHỌN: ${nameMap[enemyHeroType]}</div>`;
+    document.getElementById("p2-select-area").innerHTML = `<div style="font-size: 16px; color: #facc15; font-weight: bold; margin-top: 15px;" id="enemy-chosen-text">🤖 MÁY CHỌN: ${nameMap[enemyHeroType]}</div>`;
 }
 
 function generateRandomRoomId() {
@@ -267,6 +269,11 @@ function createRoom() {
         setTimeout(() => {
             document.getElementById("online-overlay").style.display = "none";
             document.getElementById("char-select-screen").style.display = "flex";
+            document.getElementById("select-screen-title").innerText = "CHỌN NHÂN VẬT - ONLINE";
+            document.getElementById("my-card-title").innerText = "BẠN (P1)";
+            document.getElementById("my-card-title").style.color = "#ef4444";
+            document.getElementById("enemy-card-title").innerText = "ĐỐI THỦ (P2)";
+            document.getElementById("enemy-card-title").style.color = "#60a5fa";
         }, 1000);
     });
 }
@@ -293,10 +300,12 @@ function joinRoom() {
         conn.on('open', () => {
             document.getElementById("online-overlay").style.display = "none";
             document.getElementById("char-select-screen").style.display = "flex";
+            document.getElementById("select-screen-title").innerText = "CHỌN NHÂN VẬT - ONLINE";
             document.getElementById("my-card-title").innerText = "BẠN (P2)";
             document.getElementById("my-card-title").style.color = "#60a5fa";
             document.getElementById("enemy-card-title").innerText = "ĐỐI THỦ (P1)";
             document.getElementById("enemy-card-title").style.color = "#ef4444";
+            document.getElementById("p2-select-area").innerHTML = `<div style="font-size: 15px; color: #cbd5e1; font-weight: bold; margin-top: 15px;" id="enemy-chosen-text">Chờ chọn nhân vật...</div>`;
         });
 
         conn.on('error', () => { alert("Không tìm thấy phòng với mã này!"); });
@@ -407,7 +416,6 @@ class Player {
         this.state = 'idle'; 
         this.currentFrame = 0;
         this.frameTimer = 0;
-        this.frameInterval = 10;
         
         this.isAttacking = false; this.attackTimer = 0; this.hitDone = false;
         this.attackBox = { width: 85, height: 90 }; this.hurtTimer = 0;
@@ -437,7 +445,6 @@ class Player {
 
     renderSprite() {
         if (fighterImage.complete && fighterImage.naturalWidth !== 0) {
-            // Xác định vị trí lưới 2x2 cho 4 nhân vật trong bức ảnh chung
             let colIndex = 0, rowIndex = 0;
             if (this.heroType === 'vosi') { colIndex = 0; rowIndex = 0; }
             else if (this.heroType === 'kiemsi') { colIndex = 1; rowIndex = 0; }
@@ -446,11 +453,9 @@ class Player {
 
             const sectionWidth = fighterImage.width / 2;
             const sectionHeight = fighterImage.height / 2;
-            
             const srcWidth = sectionWidth / 4;
             const srcHeight = sectionHeight / 4;
             
-            // Trạng thái hoạt ảnh động
             let animRow = 0;
             if (this.state === 'walk') animRow = 1;
             if (this.state === 'attack') animRow = 2;
@@ -468,7 +473,6 @@ class Player {
             }
             ctx.restore();
         } else {
-            // Fallback nếu chưa load được ảnh
             ctx.fillStyle = this.isP1 ? '#ef4444' : '#3b82f6';
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
@@ -493,7 +497,6 @@ class Player {
     update() {
         if (this.hurtTimer > 0) this.hurtTimer--;
 
-        // Cập nhật frame hoạt ảnh sprite
         this.frameTimer++;
         if (this.frameTimer >= 8) {
             this.frameTimer = 0;
@@ -666,7 +669,6 @@ function handleAction(type) {
     }
 }
 
-// Lắng nghe sự kiện bàn phím PC
 window.addEventListener("keydown", (e) => {
     if (!gameStarted || gameOver) return;
     let myPlayer = (gameMode === 'online' && !isHost) ? player2 : player1;
@@ -698,12 +700,10 @@ window.addEventListener("keyup", (e) => {
     }
 });
 
-// Vòng lặp game chính
 function animate() {
     requestAnimationFrame(animate);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Vẽ mặt đất nền
     ctx.fillStyle = "#1e293b";
     ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
     ctx.fillStyle = "#facc15";
