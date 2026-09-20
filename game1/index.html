@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>4 Heroes Fighting - 1v1 Optimized</title>
+<title>4 Heroes Fighting - PC Normal / Mobile Landscape</title>
+<!-- Thư viện PeerJS để kết nối trực tiếp 2 máy -->
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
 <style>
@@ -12,6 +13,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0f19; f
 .game-container { position: relative; width: 100vw; height: 100vh; }
 canvas { display: block; width: 100%; height: 100%; background: linear-gradient(to bottom, #0f172a 0%, #1e1b4b 55%, #090d16 100%); }
 
+/* --- CÁC MÀN HÌNH MENU & LOBBY --- */
 .overlay-screen {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
@@ -46,71 +48,73 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
     flex: 1; background: #0f172a; border: 2px dashed #facc15; color: #facc15; padding: 8px;
     border-radius: 8px; font-size: 18px; font-weight: bold; letter-spacing: 3px; display: flex; align-items: center; justify-content: center;
 }
-.btn-copy { padding: 0 12px; background: #334155; border: 2px solid #475569; color: white; font-weight: bold; border-radius: 8px; cursor: pointer; }
+.btn-copy {
+    padding: 0 12px; background: #334155; border: 2px solid #475569; color: white; font-weight: bold;
+    border-radius: 8px; cursor: pointer;
+}
 
 #char-select-screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: space-between; padding: 15px; position: absolute; top: 0; left: 0; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); z-index: 90; overflow-y: auto; }
-.select-title { color: #facc15; font-size: 22px; font-weight: 900; text-transform: uppercase; text-align: center; }
-.select-body { display: flex; width: 100%; max-width: 750px; justify-content: space-between; align-items: center; margin: auto 0; gap: 12px; }
-.player-card { flex: 1; background: rgba(15, 23, 42, 0.85); border: 2px solid #334155; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+.select-title { color: #facc15; font-size: 24px; font-weight: 900; text-transform: uppercase; text-align: center; }
+.select-body { display: flex; width: 100%; max-width: 800px; justify-content: space-between; align-items: center; margin: auto 0; gap: 15px; }
+.player-card { flex: 1; background: rgba(15, 23, 42, 0.85); border: 2px solid #334155; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; align-items: center; }
 .p1-card { border-color: #ef4444; }
 .p2-card { border-color: #3b82f6; }
-.p-title { font-size: 15px; font-weight: 900; margin-bottom: 6px; }
-.grid-chars { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; width: 100%; }
-.char-btn { background: #1e293b; border: 2px solid #475569; border-radius: 6px; padding: 6px; color: white; font-weight: 700; cursor: pointer; text-align: center; font-size: 12px; }
+.p-title { font-size: 16px; font-weight: 900; margin-bottom: 8px; }
+.grid-chars { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; width: 100%; }
+.char-btn { background: #1e293b; border: 2px solid #475569; border-radius: 6px; padding: 8px; color: white; font-weight: 700; cursor: pointer; text-align: center; font-size: 13px; }
 .char-btn.selected { background: #1e3a8a; border-color: #3b82f6; }
 
-/* HUD TRONG GAME */
-.ui-layer { position: absolute; top: 10px; left: 15px; right: 15px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 10; pointer-events: none; }
-.status-group { width: 40%; }
-.player-name { font-size: 14px; font-weight: 900; margin-bottom: 3px; text-shadow: 0 2px 4px #000; }
+/* --- HUD & TRONG GAME --- */
+.ui-layer { position: absolute; top: 12px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 10; pointer-events: none; }
+.status-group { width: 38%; }
+.player-name { font-size: 15px; font-weight: 900; margin-bottom: 4px; text-shadow: 0 2px 5px #000; }
 .p1-color { color: #ef4444; }
 .p2-color { color: #60a5fa; text-align: right; }
-.bar-container { width: 100%; height: 14px; margin-bottom: 2px; background: rgba(15, 23, 42, 0.8); border: 2px solid white; border-radius: 5px; overflow: hidden; }
+.bar-container { width: 100%; height: 16px; margin-bottom: 3px; background: rgba(15, 23, 42, 0.8); border: 2px solid white; border-radius: 6px; overflow: hidden; }
 .health-bar { height: 100%; width: 100%; transition: width 0.1s; }
 #p1-hp { background: linear-gradient(90deg, #991b1b, #ef4444); }
 #p2-hp { width: 100%; float: right; background: linear-gradient(90deg, #60a5fa, #1d4ed8); }
-.mp-container { height: 6px; border-color: #64748b; }
+.mp-container { height: 8px; border-color: #64748b; }
 .mana-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #581c87, #a855f7); transition: width 0.1s; }
 #p2-mp { float: right; }
 
-.controls-info { position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); padding: 4px 10px; border-radius: 8px; background: rgba(15,23,42,0.85); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 9px; text-align: center; z-index: 10; pointer-events: none; }
+.controls-info { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); padding: 4px 12px; border-radius: 10px; background: rgba(15,23,42,0.85); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 10px; text-align: center; z-index: 10; pointer-events: none; }
 
-#game-over { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 18px 30px; text-align: center; background: rgba(2,6,23,0.95); border: 2px solid #facc15; border-radius: 12px; display: none; z-index: 50; }
-#winner-text { color: #facc15; font-size: 22px; font-weight: 900; margin-bottom: 10px; }
-.btn-ui { margin: 3px; padding: 6px 14px; border: none; border-radius: 5px; background: #facc15; font-weight: bold; cursor: pointer; font-size: 13px; }
-#skill-message { position: absolute; left: 50%; top: 32%; transform: translate(-50%, -50%); font-size: 24px; font-weight: 900; opacity: 0; pointer-events: none; z-index: 30; transition: opacity 0.2s; }
+#game-over { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 35px; text-align: center; background: rgba(2,6,23,0.95); border: 2px solid #facc15; border-radius: 14px; display: none; z-index: 50; }
+#winner-text { color: #facc15; font-size: 24px; font-weight: 900; margin-bottom: 12px; }
+.btn-ui { margin: 4px; padding: 8px 16px; border: none; border-radius: 6px; background: #facc15; font-weight: bold; cursor: pointer; font-size: 14px; }
+#skill-message { position: absolute; left: 50%; top: 35%; transform: translate(-50%, -50%); font-size: 26px; font-weight: 900; opacity: 0; pointer-events: none; z-index: 30; transition: opacity 0.2s; }
 
-/* BẢNG ĐIỀU KHIỂN CẢM ỨNG ĐƯỢC TỐI ƯU KHÔNG BỊ TRÀN */
+/* --- BẢNG ĐIỀU KHIỂN CẢM ỨNG (CHỈ HIỆN KHI LÀ ĐIỆN THOẠI) --- */
 #mobile-controls {
-    position: absolute; bottom: 8px; left: 10px; right: 10px;
-    display: none; justify-content: space-between; align-items: flex-end; z-index: 40; pointer-events: none;
+    position: absolute; bottom: 12px; left: 0; right: 0;
+    display: none; justify-content: space-between; padding: 0 25px; z-index: 40; pointer-events: none;
 }
-.touch-group-left { display: flex; gap: 10px; pointer-events: auto; }
-.touch-group-right { display: flex; gap: 8px; pointer-events: auto; align-items: center; }
+.touch-group-left { display: flex; gap: 12px; pointer-events: auto; align-items: center; }
+.touch-group-right { display: flex; gap: 12px; pointer-events: auto; align-items: center; }
 
 .touch-btn {
-    width: 54px; height: 54px; background: rgba(30, 41, 59, 0.8); border: 2px solid rgba(255, 255, 255, 0.35);
-    border-radius: 50%; color: white; font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    width: 60px; height: 60px; background: rgba(30, 41, 59, 0.75); border: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50%; color: white; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
 }
 .touch-btn:active, .touch-btn.pressed { background: rgba(250, 204, 21, 0.45); border-color: #facc15; color: #facc15; }
 
 .action-btn {
-    width: 50px; height: 50px; background: rgba(239, 68, 68, 0.8); border: 2px solid rgba(255,255,255,0.4);
-    border-radius: 50%; color: white; font-weight: 900; font-size: 12px; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    width: 58px; height: 58px; background: rgba(239, 68, 68, 0.75); border: 2px solid rgba(255,255,255,0.4);
+    border-radius: 50%; color: white; font-weight: 900; font-size: 13px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
 }
 .action-btn:active { transform: scale(0.92); background: rgba(239, 68, 68, 1); }
-#btn-jump { background: rgba(16, 185, 129, 0.8); }
-#btn-skill1 { background: rgba(56, 189, 248, 0.8); }
-#btn-skill2 { background: rgba(250, 204, 21, 0.8); color: #0f172a; }
+#btn-skill1 { background: rgba(56, 189, 248, 0.75); }
+#btn-skill2 { background: rgba(250, 204, 21, 0.75); color: #0f172a; }
 </style>
 </head>
 
 <body>
 <div class="game-container">
 
-    <!-- MÀN HÌNH CHỌN CHẾ ĐỘ -->
+    <!-- MÀN HÌNH CHỌN CHẾ ĐỘ CHƠI -->
     <div id="mode-select-screen" class="overlay-screen">
         <div class="lobby-box">
             <div class="lobby-title">⚔️ 4 HEROES FIGHTING</div>
@@ -122,26 +126,26 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
     <!-- PHÒNG CHỜ ONLINE -->
     <div id="online-overlay" class="overlay-screen" style="display: none;">
         <div class="lobby-box">
-            <div class="lobby-title">🌐 ĐẤU SĨ ONLINE (1v1)</div>
+            <div class="lobby-title">🌐 ĐẤU SĨ ONLINE</div>
             
             <div class="lobby-section">
                 <button class="btn-custom" onclick="createRoom()">TẠO PHÒNG MỚI</button>
-                <div id="room-info-area" style="margin-top: 8px; display: none;">
-                    <div style="font-size: 11px; color: #94a3b8; margin-bottom: 3px;">Mã phòng 5 chữ số:</div>
+                <div id="room-info-area" style="margin-top: 10px; display: none;">
+                    <div style="font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Mã phòng gồm 5 chữ số:</div>
                     <div class="room-id-wrapper">
                         <div class="room-id-display" id="my-room-code">-----</div>
-                        <button class="btn-copy" onclick="copyRoomCode()">📋 Chép</button>
+                        <button class="btn-copy" onclick="copyRoomCode()">📋 Sao chép</button>
                     </div>
-                    <div id="connection-status" style="color: #38bdf8; font-size: 12px; font-weight: bold;">Đang chờ đối thủ...</div>
+                    <div id="connection-status" style="color: #38bdf8; font-size: 13px; font-weight: bold;">Đang chờ bạn bè vào...</div>
                 </div>
             </div>
 
             <div class="lobby-section">
-                <div style="font-size: 12px; color: #cbd5e1; margin-bottom: 6px; font-weight: bold;">Hoặc vào phòng:</div>
+                <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 8px; font-weight: bold;">Hoặc tham gia phòng bạn:</div>
                 <input type="text" id="join-code-input" class="input-custom" placeholder="Nhập 5 số..." maxlength="5">
                 <button class="btn-custom" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white;" onclick="joinRoom()">VÀO PHÒNG</button>
             </div>
-            <button class="btn-ui" style="background: #475569; color: white; width: 100%; margin-top: 6px;" onclick="backToModeSelect()">⬅ QUAY LẠI</button>
+            <button class="btn-ui" style="background: #475569; color: white; width: 100%; margin-top: 8px;" onclick="backToModeSelect()">⬅ QUAY LẠI</button>
         </div>
     </div>
 
@@ -158,15 +162,15 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
                     <div class="char-btn" onclick="selectMyChar('cungthu', this)">🏹 CUNG THỦ</div>
                 </div>
             </div>
-            <div style="font-size: 20px; font-weight: 900; color: #facc15;">VS</div>
+            <div style="font-size: 24px; font-weight: 900; color: #facc15;">VS</div>
             <div class="player-card p2-card">
                 <div class="p-title" style="color: #60a5fa;" id="enemy-card-title">ĐỐI THỦ (P2)</div>
                 <div id="p2-select-area">
-                    <div style="font-size: 13px; color: #cbd5e1; font-weight: bold; margin-top: 8px;" id="enemy-chosen-text">Đang chọn...</div>
+                    <div style="font-size: 14px; color: #cbd5e1; font-weight: bold; margin-top: 10px;" id="enemy-chosen-text">Đang chọn...</div>
                 </div>
             </div>
         </div>
-        <button class="btn-custom" style="max-width: 240px;" onclick="startBattle()">BẮT ĐẦU TRẬN ĐẤU ⚔️</button>
+        <button class="btn-custom" style="max-width: 260px;" onclick="startBattle()">BẮT ĐẦU TRẬN ĐẤU ⚔️</button>
     </div>
 
     <!-- HUD THANH MÁU & MP -->
@@ -176,7 +180,7 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
             <div class="bar-container"><div id="p1-hp" class="health-bar"></div></div>
             <div class="bar-container mp-container"><div id="p1-mp" class="mana-bar"></div></div>
         </div>
-        <div style="color:#facc15; font-weight:900; font-size:20px;">VS</div>
+        <div style="color:#facc15; font-weight:900; font-size:22px;">VS</div>
         <div class="status-group">
             <div id="p2-title" class="player-name p2-color">P2: KIẾM SĨ</div>
             <div class="bar-container"><div id="p2-hp" class="health-bar"></div></div>
@@ -188,18 +192,18 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
 
     <div id="game-over">
         <h1 id="winner-text">BẠN THẮNG!</h1>
-        <button class="btn-ui" style="background: #22c55e; color: white;" onclick="requestRematch()">🔄 ĐẤU LẠI</button>
+        <button class="btn-ui" style="background: #22c55e; color: white;" onclick="requestRematch()">🔄 ĐẤU LẠI (VÁN MỚI)</button>
         <button class="btn-ui" style="background: #ef4444; color: white;" onclick="location.reload()">VỀ TRANG CHỦ</button>
     </div>
 
-    <!-- NÚT ĐIỀU KHIỂN CẢM ỨNG ĐƯỢC CĂN CHỈNH GỌN GÀNG TRÊN ĐIỆN THOẠI -->
+    <!-- NÚT ĐIỀU KHIỂN CẢM ỨNG (CHỈ HIỆN KHI LÀ THIẾT BỊ DI ĐỘNG) -->
     <div id="mobile-controls">
         <div class="touch-group-left">
             <div class="touch-btn" id="btn-left">◀</div>
             <div class="touch-btn" id="btn-right">▶</div>
+            <div class="touch-btn" id="btn-jump" style="margin-left: 15px; background: rgba(16, 185, 129, 0.75);">▲</div>
         </div>
         <div class="touch-group-right">
-            <div class="touch-btn" id="btn-jump">▲</div>
             <div class="action-btn" id="btn-attack">U</div>
             <div class="action-btn" id="btn-skill1">I</div>
             <div class="action-btn" id="btn-skill2">O</div>
@@ -217,13 +221,16 @@ canvas { display: block; width: 100%; height: 100%; background: linear-gradient(
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// Kiểm tra xem người dùng đang dùng thiết bị di động (Mobile/Tablet) hay máy tính (PC)
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 900;
 
 function resizeCanvas() {
     if (isMobile) {
+        // Trên điện thoại: Ép màn hình xoay ngang (chiều rộng luôn lớn hơn chiều cao)
         canvas.width = Math.max(window.innerWidth, window.innerHeight);
         canvas.height = Math.min(window.innerWidth, window.innerHeight);
     } else {
+        // Trên máy tính: Giữ nguyên kích thước hiển thị bình thường
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     }
@@ -232,13 +239,14 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
+// Nếu là thiết bị di động, tự động bật hiển thị phím ảo cảm ứng và ẩn hướng dẫn bàn phím PC
 if (isMobile) {
     document.getElementById("mobile-controls").style.display = "flex";
     document.getElementById("controls-text").style.display = "none";
 }
 
 const gravity = 0.8;
-const groundHeight = 50;
+const groundHeight = 55;
 let gameStarted = false;
 let gameOver = false;
 let msgTimeout = null;
@@ -276,7 +284,7 @@ function setupBotSelectScreen() {
     document.getElementById("enemy-card-title").innerText = "MÁY (BOT)";
     
     enemyHeroType = heroList[Math.floor(Math.random() * heroList.length)];
-    document.getElementById("p2-select-area").innerHTML = `<div style="font-size: 13px; color: #facc15; font-weight: bold; margin-top: 8px;">🤖 MÁY CHỌN: ${nameMap[enemyHeroType]}</div>`;
+    document.getElementById("p2-select-area").innerHTML = `<div style="font-size: 15px; color: #facc15; font-weight: bold; margin-top: 10px;">🤖 MÁY CHỌN: ${nameMap[enemyHeroType]}</div>`;
 }
 
 function generateRandomRoomId() {
@@ -301,7 +309,7 @@ function createRoom() {
     peer.on('connection', (connection) => {
         conn = connection;
         setupConnection();
-        document.getElementById("connection-status").innerText = "Đã kết nối đối thủ!";
+        document.getElementById("connection-status").innerText = "Đã có người vào phòng! Chuyển màn hình...";
         setTimeout(() => {
             document.getElementById("online-overlay").style.display = "none";
             document.getElementById("char-select-screen").style.display = "flex";
@@ -313,14 +321,14 @@ function copyRoomCode() {
     const code = document.getElementById("my-room-code").innerText;
     navigator.clipboard.writeText(code).then(() => {
         const btn = document.querySelector(".btn-copy");
-        btn.innerText = "✅ Xong";
-        setTimeout(() => btn.innerText = "📋 Chép", 1500);
+        btn.innerText = "✅ Đã chép!";
+        setTimeout(() => btn.innerText = "📋 Sao chép", 1500);
     });
 }
 
 function joinRoom() {
     const code = document.getElementById("join-code-input").value.trim();
-    if (code.length !== 5) { alert("Mã phòng phải gồm 5 chữ số!"); return; }
+    if (code.length !== 5) { alert("Mã phòng phải gồm đúng 5 chữ số!"); return; }
 
     peer = new Peer();
     peer.on('open', () => {
@@ -337,7 +345,7 @@ function joinRoom() {
             document.getElementById("enemy-card-title").style.color = "#ef4444";
         });
 
-        conn.on('error', () => { alert("Không tìm thấy phòng!"); });
+        conn.on('error', () => { alert("Không tìm thấy phòng với mã này!"); });
     });
 }
 
@@ -413,7 +421,9 @@ function requestRematch() {
         document.getElementById("game-over").style.display = "none";
         document.getElementById("char-select-screen").style.display = "flex";
     } else {
-        if (conn && conn.open) conn.send({ type: 'rematch' });
+        if (conn && conn.open) {
+            conn.send({ type: 'rematch' });
+        }
         triggerRematchScreen();
     }
 }
@@ -422,7 +432,7 @@ function triggerRematchScreen() {
     document.getElementById("game-over").style.display = "none";
     document.getElementById("char-select-screen").style.display = "flex";
     if (gameMode === 'online') {
-        document.getElementById("enemy-chosen-text").innerText = "Chờ chọn...";
+        document.getElementById("enemy-chosen-text").innerText = "Chờ chọn nhân vật...";
     }
 }
 
@@ -433,14 +443,15 @@ function showMessage(text, color) {
     msgTimeout = setTimeout(() => el.style.opacity = "0", 800);
 }
 
+// --- CLASS NHÂN VẬT & LOGIC GAME ---
 class Player {
     constructor({ x, facing, hpId, mpId, heroType, isP1 }) {
-        this.x = x; this.y = 100; this.width = 85; this.height = 130;
+        this.x = x; this.y = 100; this.width = 90; this.height = 140;
         this.velocity = { x: 0, y: 0 }; this.facing = facing;
         this.hp = 100; this.mp = 0; this.hpId = hpId; this.mpId = mpId; this.isP1 = isP1;
         this.heroType = heroType; this.frame = 0; this.animTimer = 0;
         this.isAttacking = false; this.attackTimer = 0; this.hitDone = false;
-        this.attackBox = { width: 80, height: 85 }; this.hurtTimer = 0;
+        this.attackBox = { width: 85, height: 90 }; this.hurtTimer = 0;
         this.botActionTimer = 0;
     }
 
@@ -455,7 +466,7 @@ class Player {
         ctx.save();
         if (this.facing === "left") { ctx.translate(this.x + this.width, this.y); ctx.scale(-1, 1); }
         else { ctx.translate(this.x, this.y); }
-        ctx.scale(2, 2);
+        ctx.scale(2.2, 2.2);
         let armOffset = this.isAttacking ? 10 : 0;
         let legOffset = Math.sin(this.frame) * 3;
         let bodyY = Math.sin(this.animTimer * 0.1) * 1;
@@ -514,7 +525,7 @@ class Player {
     draw() {
         ctx.save();
         ctx.fillStyle = "rgba(0,0,0,0.3)";
-        ctx.beginPath(); ctx.ellipse(this.x + this.width / 2, canvas.height - groundHeight + 4, 30, 6, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(this.x + this.width / 2, canvas.height - groundHeight + 4, 35, 7, 0, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
 
         if (this.hurtTimer > 0 && this.hurtTimer % 4 < 2) {
@@ -620,9 +631,9 @@ function updateBotAI() {
 
     player2.botActionTimer++;
 
-    if (dist > 85) {
+    if (dist > 90) {
         player2.velocity.x = dx > 0 ? 4 : -4;
-    } else if (dist < 55) {
+    } else if (dist < 60) {
         player2.velocity.x = dx > 0 ? -3 : 3;
     } else {
         player2.velocity.x = 0;
@@ -632,7 +643,7 @@ function updateBotAI() {
         if (Math.random() < 0.6) player2.velocity.y = -15;
     }
 
-    if (dist < 100 && player2.botActionTimer % 35 === 0) {
+    if (dist < 110 && player2.botActionTimer % 35 === 0) {
         let rand = Math.random();
         if (rand < 0.4 && player2.mp >= 50) {
             if (player2.skill(50, 300, "🔥 MÁY CHIÊU 2!", "#facc15")) {
@@ -687,6 +698,7 @@ function handleAction(type) {
     }
 }
 
+// --- ĐIỀU KHIỂN BÀN PHÍM PC ---
 window.addEventListener("keydown", e => {
     if (!gameStarted || gameOver) return;
     let myPlayer = (gameMode === 'online' && !isHost) ? player2 : player1;
@@ -706,6 +718,7 @@ window.addEventListener("keyup", e => {
     if (e.key === "d" || e.key === "D") keys.d = false;
 });
 
+// --- ĐIỀU KHIỂN CẢM ỨNG (CHỈ ÁP DỤNG TRÊN ĐIỆN THOẠI) ---
 const bindTouchButton = (id, onDown, onUp) => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -727,6 +740,7 @@ bindTouchButton("btn-jump", () => {
 bindTouchButton("btn-attack", () => handleAction('attack'));
 bindTouchButton("btn-skill1", () => handleAction('skill1'));
 bindTouchButton("btn-skill2", () => handleAction('skill2'));
+
 
 function animate() {
     requestAnimationFrame(animate);
