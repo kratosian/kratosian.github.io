@@ -1,931 +1,373 @@
-// ============================================================
-// NHÂN VẬT VẼ BẰNG CODE - KHÔNG CẦN ẢNH
-// ============================================================
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game 2D - Võ Sĩ, Kiếm Sĩ, Pháp Sư, Cung Thủ</title>
+    <!-- Thư viện PeerJS để hỗ trợ kết nối phòng online qua mã phòng -->
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #121212;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #game-container {
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #1e1e1e;
+        }
+        canvas {
+            display: block;
+            background: linear-gradient(to bottom, #2c3e50, #bdc3c7);
+        }
+        .ui-overlay {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        .menu-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(18, 18, 18, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        h1 { margin-bottom: 20px; font-size: 32px; color: #f39c12; text-transform: uppercase; letter-spacing: 2px; }
+        .btn-group { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+        button, select, input {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover { background: #c0392b; transform: translateY(-2px); }
+        input, select { background: #2c3e50; border: 1px solid #7f8c8d; }
+        .hidden { display: none !important; }
+        .controls-hint {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #bdc3c7;
+            text-align: center;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
 
-function drawCharacter(ctx, hero, x, y, w, h, facing, state, frame, attacking, hurtTimer) {
+    <div id="game-container">
+        <!-- Màn hình Menu chính -->
+        <div id="main-menu" class="menu-screen">
+            <h1>Đại Chiến 2D Online</h1>
+            <div style="margin-bottom: 15px;">
+                <label>Chọn lớp nhân vật: </label>
+                <select id="char-select">
+                    <option value="fighter">Võ Sĩ (Cận chiến mạnh)</option>
+                    <option value="swordsman">Kiếm Sĩ (Tốc độ & Sải tay)</option>
+                    <option value="mage">Pháp Sư (Phép tầm xa)</option>
+                    <option value="archer">Cung Thủ (Bắn cung linh hoạt)</option>
+                </select>
+            </div>
+            <div class="btn-group">
+                <button onclick="startPVE()">Đấu với Máy (PVE)</button>
+                <button onclick="showRoomMenu()">Chơi Online (P2P)</button>
+            </div>
+        </div>
 
-    ctx.save();
+        <!-- Màn hình tạo/vào phòng Online -->
+        <div id="room-menu" class="menu-screen hidden">
+            <h1>Phòng Trực Tuyến</h1>
+            <div class="btn-group" style="flex-direction: column; align-items: center;">
+                <button onclick="createRoom()" style="width: 220px;">Tạo Phòng Mới</button>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <input type="text" id="room-code-input" placeholder="Nhập mã 5 chữ số" maxlength="5" style="width: 150px; text-align: center;">
+                    <button onclick="joinRoom()">Vào Phòng</button>
+                </div>
+            </div>
+            <p id="room-status" style="margin-top: 15px; color: #f1c40f;"></p>
+            <button onclick="backToMain()" style="margin-top: 20px; background: #7f8c8d;">Quay lại</button>
+        </div>
 
-    // --------------------------------------------------------
-    // Hiệu ứng nhấp nháy khi bị đánh
-    // --------------------------------------------------------
-    if (hurtTimer > 0 && hurtTimer % 4 < 2) {
-        ctx.globalAlpha = 0.45;
-    }
+        <!-- Giao diện trong trận đấu -->
+        <div class="ui-overlay hidden" id="hud">
+            <div>P1 HP: <span id="p1-hp">100</span></div>
+            <div id="room-info">Mã phòng: <span id="display-room-code">----</span></div>
+            <div>P2 HP: <span id="p2-hp">100</span></div>
+        </div>
 
-    // --------------------------------------------------------
-    // Lật nhân vật
-    // --------------------------------------------------------
-    if (facing === "left") {
-        ctx.translate(x + w, 0);
-        ctx.scale(-1, 1);
-        x = 0;
-    }
+        <canvas id="gameCanvas" width="800" height="450" class="hidden"></canvas>
+    </div>
 
-    // --------------------------------------------------------
-    // Animation
-    // --------------------------------------------------------
-    const t = performance.now() / 120;
+    <div class="controls-hint">
+        <b>Điều khiển (P1):</b> A/D để di chuyển | W để nhảy | J để tấn công / Dùng kỹ năng | K để lướt né
+    </div>
 
-    let bob = 0;
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-    if (state === "idle") {
-        bob = Math.sin(t) * 2;
-    }
+        let gameState = 'MENU'; // MENU, ROOM, PLAYING
+        let gameMode = 'PVE'; // PVE hoặc PVP
+        let peer = null, conn = null;
+        let myId = '', roomCode = '';
+        let isHost = false;
 
-    if (state === "walk") {
-        bob = Math.sin(t * 2) * 3;
-    }
+        let keys = {};
+        window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+        window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
-    if (state === "jump") {
-        bob = -3;
-    }
-
-    let attackMove = attacking ? Math.sin(t * 2) * 5 : 0;
-
-    y += bob;
-
-    // ========================================================
-    // VÕ SĨ
-    // ========================================================
-    if (hero === "vosi") {
-
-        // Bóng
-        drawShadow(ctx, x + w / 2, y + h);
-
-        // Chân
-        ctx.fillStyle = "#171717";
-
-        drawRoundRect(
-            ctx,
-            x + 37,
-            y + h - 48,
-            20,
-            48,
-            8
-        );
-
-        drawRoundRect(
-            ctx,
-            x + 66,
-            y + h - 48,
-            20,
-            48,
-            8
-        );
-
-        // Giày
-        ctx.fillStyle = "#111827";
-
-        drawRoundRect(
-            ctx,
-            x + 28,
-            y + h - 15,
-            31,
-            13,
-            7
-        );
-
-        drawRoundRect(
-            ctx,
-            x + 65,
-            y + h - 15,
-            31,
-            13,
-            7
-        );
-
-        // Thân hình 6 múi
-        ctx.fillStyle = "#f59e0b";
-
-        drawRoundRect(
-            ctx,
-            x + 30,
-            y + 65,
-            65,
-            70,
-            22
-        );
-
-        // Áo/đai
-        ctx.fillStyle = "#dc2626";
-
-        ctx.fillRect(
-            x + 31,
-            y + 112,
-            63,
-            12
-        );
-
-        // Cơ bụng
-        ctx.strokeStyle = "#92400e";
-        ctx.lineWidth = 3;
-
-        ctx.beginPath();
-
-        ctx.moveTo(x + 62, y + 78);
-        ctx.lineTo(x + 62, y + 112);
-
-        ctx.moveTo(x + 45, y + 87);
-        ctx.lineTo(x + 56, y + 87);
-
-        ctx.moveTo(x + 68, y + 87);
-        ctx.lineTo(x + 79, y + 87);
-
-        ctx.moveTo(x + 45, y + 101);
-        ctx.lineTo(x + 56, y + 101);
-
-        ctx.moveTo(x + 68, y + 101);
-        ctx.lineTo(x + 79, y + 101);
-
-        ctx.stroke();
-
-        // Đầu
-        ctx.fillStyle = "#f5b97a";
-
-        ctx.beginPath();
-        ctx.arc(
-            x + 62,
-            y + 42,
-            28,
-            0,
-            Math.PI * 2
-        );
-        ctx.fill();
-
-        // Tóc
-        ctx.fillStyle = "#111827";
-
-        ctx.beginPath();
-        ctx.arc(
-            x + 62,
-            y + 31,
-            27,
-            Math.PI,
-            Math.PI * 2
-        );
-        ctx.fill();
-
-        // Mắt
-        ctx.fillStyle = "#111";
-
-        ctx.fillRect(x + 72, y + 39, 5, 5);
-
-        // Tay
-        ctx.strokeStyle = "#f5b97a";
-        ctx.lineWidth = 15;
-        ctx.lineCap = "round";
-
-        if (attacking) {
-
-            // Đấm về phía trước
-            ctx.beginPath();
-            ctx.moveTo(x + 35, y + 82);
-            ctx.lineTo(x + 100 + attackMove, y + 72);
-            ctx.stroke();
-
-            // Nắm đấm
-            ctx.fillStyle = "#f5b97a";
-
-            ctx.beginPath();
-            ctx.arc(
-                x + 103 + attackMove,
-                y + 70,
-                11,
-                0,
-                Math.PI * 2
-            );
-            ctx.fill();
-
-        } else {
-
-            ctx.beginPath();
-            ctx.moveTo(x + 35, y + 80);
-            ctx.lineTo(x + 20, y + 115);
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(x + 90, y + 80);
-            ctx.lineTo(x + 105, y + 115);
-            ctx.stroke();
+        // Khởi tạo thông số nhân vật theo lớp
+        function createPlayer(x, y, type) {
+            return {
+                x: x, y: y, width: 40, height: 60,
+                vx: 0, vy: 0, speed: 4, jumpForce: -11,
+                isGrounded: false, hp: 100, maxHp: 100,
+                type: type, facing: 1, // 1: phải, -1: trái
+                isAttacking: false, attackCooldown: 0,
+                color: type === 'fighter' ? '#e74c3c' : type === 'swordsman' ? '#3498db' : type === 'mage' ? '#9b59b6' : '#2ecc71',
+                projectiles: []
+            };
         }
 
-        // Aura skill
-        if (state === "skill1" || state === "skill2" || state === "skill3") {
+        let player1, player2;
 
-            ctx.strokeStyle =
-                state === "skill1"
-                    ? "#38bdf8"
-                    : state === "skill2"
-                        ? "#facc15"
-                        : "#ef4444";
-
-            ctx.lineWidth = 5;
-
-            ctx.beginPath();
-
-            ctx.arc(
-                x + 62,
-                y + 82,
-                55 + Math.sin(t) * 5,
-                0,
-                Math.PI * 2
-            );
-
-            ctx.stroke();
-        }
-    }
-
-    // ========================================================
-    // KIẾM SĨ
-    // ========================================================
-    else if (hero === "kiemsi") {
-
-        drawShadow(ctx, x + w / 2, y + h);
-
-        // Áo choàng
-        ctx.fillStyle = "#374151";
-
-        ctx.beginPath();
-
-        ctx.moveTo(x + 28, y + 70);
-        ctx.lineTo(x + 96, y + 70);
-        ctx.lineTo(x + 108, y + h - 20);
-        ctx.lineTo(x + 20, y + h - 20);
-
-        ctx.closePath();
-        ctx.fill();
-
-        // Giáp
-        ctx.fillStyle = "#9ca3af";
-
-        drawRoundRect(
-            ctx,
-            x + 35,
-            y + 65,
-            55,
-            65,
-            10
-        );
-
-        // Chân
-        ctx.fillStyle = "#1f2937";
-
-        drawRoundRect(
-            ctx,
-            x + 37,
-            y + 118,
-            20,
-            50,
-            5
-        );
-
-        drawRoundRect(
-            ctx,
-            x + 66,
-            y + 118,
-            20,
-            50,
-            5
-        );
-
-        // Đầu
-        ctx.fillStyle = "#eab27b";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            x + 62,
-            y + 40,
-            26,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-
-        // Tóc
-        ctx.fillStyle = "#3f2418";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            x + 62,
-            y + 32,
-            26,
-            Math.PI,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-
-        // Mắt
-        ctx.fillStyle = "#111";
-
-        ctx.fillRect(
-            x + 72,
-            y + 40,
-            5,
-            5
-        );
-
-        // Kiếm
-        ctx.save();
-
-        ctx.translate(
-            x + 92,
-            y + 105
-        );
-
-        if (attacking) {
-            ctx.rotate(-0.65);
-        } else {
-            ctx.rotate(-0.25);
+        function showRoomMenu() {
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('room-menu').classList.remove('hidden');
         }
 
-        // Lưỡi kiếm
-        ctx.fillStyle = "#e5e7eb";
-
-        ctx.beginPath();
-
-        ctx.moveTo(0, 0);
-        ctx.lineTo(90, -8);
-        ctx.lineTo(100, 0);
-        ctx.lineTo(90, 8);
-        ctx.closePath();
-
-        ctx.fill();
-
-        // Chuôi
-        ctx.fillStyle = "#92400e";
-
-        ctx.fillRect(
-            -25,
-            -4,
-            28,
-            8
-        );
-
-        // Tsuba
-        ctx.fillStyle = "#facc15";
-
-        ctx.fillRect(
-            -5,
-            -12,
-            8,
-            24
-        );
-
-        ctx.restore();
-
-        // Skill aura
-        if (state === "skill1" ||
-            state === "skill2" ||
-            state === "skill3") {
-
-            ctx.strokeStyle =
-                state === "skill1"
-                    ? "#60a5fa"
-                    : state === "skill2"
-                        ? "#a855f7"
-                        : "#facc15";
-
-            ctx.lineWidth = 5;
-
-            ctx.beginPath();
-
-            ctx.arc(
-                x + 62,
-                y + 85,
-                60,
-                -1,
-                1
-            );
-
-            ctx.stroke();
+        function backToMain() {
+            document.getElementById('room-menu').classList.add('hidden');
+            document.getElementById('main-menu').classList.remove('hidden');
         }
-    }
 
-    // ========================================================
-    // PHÁP SƯ
-    // ========================================================
-    else if (hero === "phapsu") {
+        function startPVE() {
+            gameMode = 'PVE';
+            const charType = document.getElementById('char-select').value;
+            player1 = createPlayer(100, 320, charType);
+            player2 = createPlayer(660, 320, charType === 'fighter' ? 'swordsman' : 'fighter');
+            startGameplay();
+        }
 
-        drawShadow(ctx, x + w / 2, y + h);
+        function startGameplay() {
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('room-menu').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            canvas.classList.remove('hidden');
+            gameState = 'PLAYING';
+            requestAnimationFrame(gameLoop);
+        }
 
-        // Áo choàng
-        ctx.fillStyle = "#581c87";
+        // Tạo mã phòng ngẫu nhiên gồm 5 chữ số
+        function generateRoomCode() {
+            return Math.floor(10000 + Math.random() * 90000).toString();
+        }
 
-        ctx.beginPath();
+        function createRoom() {
+            isHost = true;
+            roomCode = generateRoomCode();
+            document.getElementById('room-status').innerText = 'Đang khởi tạo mã phòng...';
+            
+            peer = new Peer();
+            peer.on('open', (id) => {
+                myId = id;
+                // Sử dụng mã phòng 5 số làm tiền tố hoặc ID kết nối
+                document.getElementById('room-status').innerText = `Mã phòng của bạn: ${roomCode}. Đang đợi người chơi khác...`;
+                document.getElementById('display-room-code').innerText = roomCode;
+            });
 
-        ctx.moveTo(x + 25, y + 65);
-        ctx.lineTo(x + 100, y + 65);
-        ctx.lineTo(x + 110, y + h);
-        ctx.lineTo(x + 15, y + h);
+            peer.on('connection', (connection) => {
+                conn = connection;
+                setupConnection();
+                gameMode = 'PVP';
+                const charType = document.getElementById('char-select').value;
+                player1 = createPlayer(100, 320, charType);
+                player2 = createPlayer(660, 320, charType === 'fighter' ? 'swordsman' : 'fighter');
+                startGameplay();
+            });
+        }
 
-        ctx.closePath();
-        ctx.fill();
+        function joinRoom() {
+            isHost = false;
+            roomCode = document.getElementById('room-code-input').value.trim();
+            if (roomCode.length !== 5) {
+                alert('Vui lòng nhập đúng mã phòng 5 chữ số!');
+                return;
+            }
+            document.getElementById('room-status').innerText = 'Đang kết nối vào phòng...';
 
-        // Viền áo
-        ctx.strokeStyle = "#a855f7";
-        ctx.lineWidth = 4;
+            peer = new Peer();
+            peer.on('open', (id) => {
+                // Kết nối tới Host (giả lập sử dụng ID ghép từ roomCode)
+                // Trong môi trường thực tế, roomCode sẽ được ánh xạ qua server trung gian hoặc peer custom id
+                conn = peer.connect(roomCode);
+                setupConnection();
+                gameMode = 'PVP';
+                const charType = document.getElementById('char-select').value;
+                player2 = createPlayer(100, 320, charType); // P2 là máy khách
+                player1 = createPlayer(660, 320, 'fighter');
+                startGameplay();
+            });
+        }
 
-        ctx.stroke();
+        function setupConnection() {
+            conn.on('data', (data) => {
+                if (isHost) {
+                    player2.x = data.x;
+                    player2.y = data.y;
+                    player2.hp = data.hp;
+                    if (data.attacking) triggerAttack(player2);
+                } else {
+                    player1.x = data.x;
+                    player1.y = data.y;
+                    player1.hp = data.hp;
+                    if (data.attacking) triggerAttack(player1);
+                }
+            });
+        }
 
-        // Chân
-        ctx.fillStyle = "#111827";
+        function triggerAttack(p) {
+            p.isAttacking = true;
+            setTimeout(() => p.isAttacking = false, 200);
+        }
 
-        drawRoundRect(
-            ctx,
-            x + 40,
-            y + h - 25,
-            18,
-            25,
-            6
-        );
+        // Xử lý logic di chuyển và va chạm
+        function updatePlayer(p) {
+            p.vy += 0.5; // Trọng lực
+            p.x += p.vx;
+            p.y += p.vy;
 
-        drawRoundRect(
-            ctx,
-            x + 67,
-            y + h - 25,
-            18,
-            25,
-            6
-        );
+            // Sàn nhà
+            if (p.y > 320) {
+                p.y = 320;
+                p.vy = 0;
+                p.isGrounded = true;
+            }
 
-        // Đầu
-        ctx.fillStyle = "#f2c094";
+            // Giới hạn biên màn hình
+            if (p.x < 0) p.x = 0;
+            if (p.x > canvas.width - p.width) p.x = canvas.width - p.width;
 
-        ctx.beginPath();
+            if (p.attackCooldown > 0) p.attackCooldown--;
+        }
 
-        ctx.arc(
-            x + 62,
-            y + 43,
-            25,
-            0,
-            Math.PI * 2
-        );
+        function update() {
+            if (gameState !== 'PLAYING') return;
 
-        ctx.fill();
+            // Điều khiển Player 1
+            player1.vx = 0;
+            if (keys['a']) { player1.vx = -player1.speed; player1.facing = -1; }
+            if (keys['d']) { player1.vx = player1.speed; player1.facing = 1; }
+            if (keys['w'] && player1.isGrounded) { player1.vy = player1.jumpForce; player1.isGrounded = false; }
+            
+            if (keys['j'] && player1.attackCooldown === 0) {
+                triggerAttack(player1);
+                player1.attackCooldown = 30;
+                // Kiểm tra trúng đòn P2
+                if (Math.abs(player1.x - player2.x) < 60 && Math.abs(player1.y - player2.y) < 40) {
+                    player2.hp = Math.max(0, player2.hp - 10);
+                }
+            }
 
-        // Tóc
-        ctx.fillStyle = "#111827";
+            updatePlayer(player1);
+            updatePlayer(player2);
 
-        ctx.beginPath();
+            // AI đơn giản cho PVE
+            if (gameMode === 'PVE') {
+                if (player2.x > player1.x + 50) {
+                    player2.vx = -2; player2.facing = -1;
+                } else if (player2.x < player1.x - 50) {
+                    player2.vx = 2; player2.facing = 1;
+                } else {
+                    player2.vx = 0;
+                    if (Math.random() < 0.02 && player2.attackCooldown === 0) {
+                        triggerAttack(player2);
+                        player2.attackCooldown = 40;
+                        if (Math.abs(player2.x - player1.x) < 60) {
+                            player1.hp = Math.max(0, player1.hp - 5);
+                        }
+                    }
+                }
+            }
 
-        ctx.arc(
-            x + 62,
-            y + 32,
-            27,
-            Math.PI,
-            Math.PI * 2
-        );
+            // Đồng bộ dữ liệu qua mạng nếu chơi PVP
+            if (gameMode === 'PVP' && conn && conn.open) {
+                if (isHost) {
+                    conn.send({ x: player1.x, y: player1.y, hp: player1.hp, attacking: player1.isAttacking });
+                } else {
+                    conn.send({ x: player2.x, y: player2.y, hp: player2.hp, attacking: player2.isAttacking });
+                }
+            }
 
-        ctx.fill();
+            // Cập nhật thanh HP trên giao diện
+            document.getElementById('p1-hp').innerText = player1.hp;
+            document.getElementById('p2-hp').innerText = player2.hp;
 
-        // Mắt
-        ctx.fillStyle = "#111";
-
-        ctx.fillRect(
-            x + 72,
-            y + 40,
-            5,
-            5
-        );
-
-        // Mũ pháp sư
-        ctx.fillStyle = "#312e81";
-
-        ctx.beginPath();
-
-        ctx.moveTo(x + 27, y + 25);
-        ctx.lineTo(x + 62, y - 20);
-        ctx.lineTo(x + 97, y + 25);
-
-        ctx.closePath();
-
-        ctx.fill();
-
-        ctx.fillStyle = "#facc15";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            x + 62,
-            y + 12,
-            5,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-
-        // Gậy phép
-        ctx.strokeStyle = "#78350f";
-        ctx.lineWidth = 7;
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            x + 95,
-            y + 155
-        );
-
-        ctx.lineTo(
-            x + 108,
-            y + 62
-        );
-
-        ctx.stroke();
-
-        // Quả cầu phép
-        ctx.fillStyle = "#38bdf8";
-
-        ctx.shadowColor = "#38bdf8";
-        ctx.shadowBlur = 18;
-
-        ctx.beginPath();
-
-        ctx.arc(
-            x + 108,
-            y + 55,
-            12 + Math.sin(t) * 3,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-
-        ctx.shadowBlur = 0;
-
-        // Phép thuật
-        if (state === "skill1" ||
-            state === "skill2" ||
-            state === "skill3") {
-
-            const color =
-                state === "skill1"
-                    ? "#38bdf8"
-                    : state === "skill2"
-                        ? "#a855f7"
-                        : "#facc15";
-
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 4;
-
-            for (let i = 0; i < 6; i++) {
-
-                const angle =
-                    t + i * Math.PI / 3;
-
-                const radius = 55;
-
-                ctx.beginPath();
-
-                ctx.arc(
-                    x + 62 +
-                    Math.cos(angle) * radius,
-
-                    y + 85 +
-                    Math.sin(angle) * radius,
-
-                    7,
-                    0,
-                    Math.PI * 2
-                );
-
-                ctx.stroke();
+            if (player1.hp <= 0 || player2.hp <= 0) {
+                alert(player1.hp <= 0 ? "Player 2 Thắng!" : "Player 1 Thắng!");
+                location.reload();
             }
         }
-    }
 
-    // ========================================================
-    // CUNG THỦ
-    // ========================================================
-    else if (hero === "cungthu") {
+        // Vẽ đồ họa nhân vật & hiệu ứng chiêu thức
+        function drawPlayer(p) {
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, p.width, p.height);
 
-        drawShadow(ctx, x + w / 2, y + h);
+            // Vẽ mắt định hướng mặt nhân vật
+            ctx.fillStyle = '#fff';
+            let eyeX = p.facing === 1 ? p.x + 25 : p.x + 10;
+            ctx.fillRect(eyeX, p.y + 15, 6, 6);
 
-        // Áo xanh lá
-        ctx.fillStyle = "#166534";
-
-        drawRoundRect(
-            ctx,
-            x + 30,
-            y + 65,
-            65,
-            70,
-            15
-        );
-
-        // Quần
-        ctx.fillStyle = "#1f2937";
-
-        drawRoundRect(
-            ctx,
-            x + 37,
-            y + 125,
-            20,
-            43,
-            6
-        );
-
-        drawRoundRect(
-            ctx,
-            x + 66,
-            y + 125,
-            20,
-            43,
-            6
-        );
-
-        // Đầu
-        ctx.fillStyle = "#f3c18b";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            x + 62,
-            y + 42,
-            25,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-
-        // Tóc vàng
-        ctx.fillStyle = "#facc15";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            x + 62,
-            y + 33,
-            28,
-            Math.PI,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-
-        // Tóc bên
-        ctx.fillRect(
-            x + 35,
-            y + 28,
-            10,
-            35
-        );
-
-        ctx.fillRect(
-            x + 79,
-            y + 28,
-            10,
-            35
-        );
-
-        // Mắt
-        ctx.fillStyle = "#111";
-
-        ctx.fillRect(
-            x + 72,
-            y + 40,
-            5,
-            5
-        );
-
-        // Cánh tay
-        ctx.strokeStyle = "#f3c18b";
-        ctx.lineWidth = 12;
-        ctx.lineCap = "round";
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            x + 40,
-            y + 80
-        );
-
-        ctx.lineTo(
-            x + 95,
-            y + 90
-        );
-
-        ctx.stroke();
-
-        // Cung
-        ctx.strokeStyle = "#92400e";
-        ctx.lineWidth = 6;
-
-        ctx.beginPath();
-
-        ctx.arc(
-            x + 100,
-            y + 100,
-            45,
-            -Math.PI / 2,
-            Math.PI / 2
-        );
-
-        ctx.stroke();
-
-        // Dây cung
-        ctx.strokeStyle = "#fef3c7";
-        ctx.lineWidth = 2;
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            x + 100,
-            y + 55
-        );
-
-        ctx.lineTo(
-            x + 100,
-            y + 145
-        );
-
-        ctx.stroke();
-
-        // Mũi tên
-        ctx.strokeStyle = "#d1d5db";
-        ctx.lineWidth = 3;
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            x + 55,
-            y + 100
-        );
-
-        ctx.lineTo(
-            x + 135,
-            y + 100
-        );
-
-        ctx.stroke();
-
-        // Đầu mũi tên
-        ctx.fillStyle = "#e5e7eb";
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            x + 140,
-            y + 100
-        );
-
-        ctx.lineTo(
-            x + 130,
-            y + 94
-        );
-
-        ctx.lineTo(
-            x + 130,
-            y + 106
-        );
-
-        ctx.closePath();
-
-        ctx.fill();
-
-        // Khi tấn công: mũi tên bay
-        if (attacking) {
-
-            ctx.strokeStyle = "#facc15";
-            ctx.lineWidth = 4;
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                x + 100,
-                y + 90
-            );
-
-            ctx.lineTo(
-                x + 145 + attackMove,
-                y + 90
-            );
-
-            ctx.stroke();
+            // Hiệu ứng tấn công (Mô phỏng đòn đánh / chém / phép)
+            if (p.isAttacking) {
+                ctx.fillStyle = '#f1c40f';
+                let atkX = p.facing === 1 ? p.x + p.width : p.x - 30;
+                ctx.fillRect(atkX, p.y + 15, 30, 20);
+            }
         }
 
-        // Skill aura
-        if (state === "skill1" ||
-            state === "skill2" ||
-            state === "skill3") {
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.strokeStyle =
-                state === "skill1"
-                    ? "#22c55e"
-                    : state === "skill2"
-                        ? "#38bdf8"
-                        : "#facc15";
+            // Vẽ nền đất
+            ctx.fillStyle = '#34495e';
+            ctx.fillRect(0, 380, canvas.width, 70);
 
-            ctx.lineWidth = 4;
-
-            ctx.beginPath();
-
-            ctx.arc(
-                x + 62,
-                y + 85,
-                58 + Math.sin(t) * 4,
-                0,
-                Math.PI * 2
-            );
-
-            ctx.stroke();
+            drawPlayer(player1);
+            drawPlayer(player2);
         }
-    }
 
-    ctx.restore();
-}
-
-
-// ============================================================
-// HÌNH CHỮ NHẬT BO GÓC
-// ============================================================
-
-function drawRoundRect(ctx, x, y, width, height, radius) {
-
-    ctx.beginPath();
-
-    ctx.moveTo(x + radius, y);
-
-    ctx.lineTo(x + width - radius, y);
-
-    ctx.quadraticCurveTo(
-        x + width,
-        y,
-        x + width,
-        y + radius
-    );
-
-    ctx.lineTo(
-        x + width,
-        y + height - radius
-    );
-
-    ctx.quadraticCurveTo(
-        x + width,
-        y + height,
-        x + width - radius,
-        y + height
-    );
-
-    ctx.lineTo(
-        x + radius,
-        y + height
-    );
-
-    ctx.quadraticCurveTo(
-        x,
-        y + height,
-        x,
-        y + height - radius
-    );
-
-    ctx.lineTo(
-        x,
-        y + radius
-    );
-
-    ctx.quadraticCurveTo(
-        x,
-        y,
-        x + radius,
-        y
-    );
-
-    ctx.closePath();
-
-    ctx.fill();
-}
-
-
-// ============================================================
-// BÓNG DƯỚI CHÂN
-// ============================================================
-
-function drawShadow(ctx, x, y) {
-
-    ctx.save();
-
-    ctx.fillStyle = "rgba(0,0,0,0.35)";
-
-    ctx.beginPath();
-
-    ctx.ellipse(
-        x,
-        y,
-        35,
-        8,
-        0,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.fill();
-
-    ctx.restore();
-}
+        function gameLoop() {
+            update();
+            draw();
+            if (gameState === 'PLAYING') {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+    </script>
+</body>
+</html>
