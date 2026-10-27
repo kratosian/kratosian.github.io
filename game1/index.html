@@ -2,372 +2,920 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game 2D - Võ Sĩ, Kiếm Sĩ, Pháp Sư, Cung Thủ</title>
-    <!-- Thư viện PeerJS để hỗ trợ kết nối phòng online qua mã phòng -->
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pikachu Onet Hardcore Edition</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.85);
+            --border-color: #334155;
+            --text-color: #f8fafc;
+            --accent-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --grid-cols: 16;
+            --grid-rows: 9;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
         body {
-            background: #121212;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
+            color: var(--text-color);
             min-height: 100vh;
-            overflow: hidden;
-        }
-        #game-container {
-            position: relative;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            border-radius: 8px;
-            overflow: hidden;
-            background: #1e1e1e;
-        }
-        canvas {
-            display: block;
-            background: linear-gradient(to bottom, #2c3e50, #bdc3c7);
-        }
-        .ui-overlay {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            right: 15px;
-            display: flex;
-            justify-content: space-between;
-            pointer-events: none;
-            font-size: 18px;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-        }
-        .menu-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(18, 18, 18, 0.95);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 10;
+            overflow: hidden;
+            padding: 8px;
         }
-        h1 { margin-bottom: 20px; font-size: 32px; color: #f39c12; text-transform: uppercase; letter-spacing: 2px; }
-        .btn-group { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
-        button, select, input {
-            padding: 10px 20px;
-            font-size: 16px;
-            background: #e74c3c;
-            color: white;
-            border: none;
+
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        .header-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 10px 18px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .title-group h1 {
+            font-size: 1.3rem;
+            color: #fbbf24;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+        }
+
+        .stats-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: #94a3b8;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #38bdf8;
+        }
+
+        .timer-container {
+            width: 100%;
+            height: 10px;
+            background: #334155;
             border-radius: 5px;
-            cursor: pointer;
-            transition: 0.2s;
+            overflow: hidden;
+            position: relative;
         }
-        button:hover { background: #c0392b; transform: translateY(-2px); }
-        input, select { background: #2c3e50; border: 1px solid #7f8c8d; }
-        .hidden { display: none !important; }
-        .controls-hint {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #bdc3c7;
+
+        .timer-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
+            border-radius: 5px;
+            transition: width 0.2s linear;
+        }
+
+        .controls-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            background: #334155;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.85rem;
+            border: 1px solid #475569;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #475569;
+            transform: translateY(-2px);
+        }
+
+        .btn-accent {
+            background: #d97706;
+            border-color: #f59e0b;
+        }
+        .btn-accent:hover:not(:disabled) { background: #b45309; }
+
+        .btn-danger {
+            background: #dc2626;
+            border-color: #ef4444;
+        }
+
+        .board-outer {
+            position: relative;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid var(--border-color);
+            border-radius: 14px;
+            padding: 8px;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+            gap: 3px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .tile {
+            aspect-ratio: 1;
+            width: min(52px, 5.3vw);
+            height: min(52px, 5.3vw);
+            background: #1e293b;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s, background-color 0.15s;
+            border: 2px solid #334155;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .tile:hover {
+            border-color: #38bdf8;
+            transform: scale(1.05);
+            z-index: 5;
+        }
+
+        .tile.selected {
+            border-color: #f59e0b !important;
+            background: #451a03 !important;
+            transform: scale(1.1);
+            z-index: 10;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+            animation: pulse 0.8s infinite alternate;
+        }
+
+        .tile.hint {
+            border-color: #10b981 !important;
+            animation: pulse-green 0.6s infinite alternate;
+        }
+
+        .tile.empty {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .tile svg {
+            width: 82%;
+            height: 82%;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+        }
+
+        #svg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .connector-path {
+            fill: none;
+            stroke: #ef4444;
+            stroke-width: 5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 8px #ef4444);
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawPath 0.3s forwards;
+        }
+
+        @keyframes drawPath {
+            to { stroke-dashoffset: 0; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1.05); }
+            100% { transform: scale(1.12); }
+        }
+
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 2px #10b981; }
+            100% { box-shadow: 0 0 12px #10b981; }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: #1e293b;
+            border: 2px solid #475569;
+            border-radius: 16px;
+            padding: 24px 32px;
             text-align: center;
-            line-height: 1.5;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 1.6rem;
+            color: #fbbf24;
+            margin-bottom: 8px;
+        }
+
+        .modal-desc {
+            color: #94a3b8;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
         }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <!-- Màn hình Menu chính -->
-        <div id="main-menu" class="menu-screen">
-            <h1>Đại Chiến 2D Online</h1>
-            <div style="margin-bottom: 15px;">
-                <label>Chọn lớp nhân vật: </label>
-                <select id="char-select">
-                    <option value="fighter">Võ Sĩ (Cận chiến mạnh)</option>
-                    <option value="swordsman">Kiếm Sĩ (Tốc độ & Sải tay)</option>
-                    <option value="mage">Pháp Sư (Phép tầm xa)</option>
-                    <option value="archer">Cung Thủ (Bắn cung linh hoạt)</option>
-                </select>
+<div class="game-wrapper">
+    <div class="header-panel">
+        <div class="title-group">
+            ⚡ <span>Pikachu Hardcore</span>
+        </div>
+
+        <div class="stats-group">
+            <div class="stat-item">
+                <span class="stat-label">Màn</span>
+                <span class="stat-value" id="level-txt">1</span>
             </div>
-            <div class="btn-group">
-                <button onclick="startPVE()">Đấu với Máy (PVE)</button>
-                <button onclick="showRoomMenu()">Chơi Online (P2P)</button>
+            <div class="stat-item">
+                <span class="stat-label">Điểm</span>
+                <span class="stat-value" id="score-txt">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Gợi ý</span>
+                <span class="stat-value" id="hint-txt">5</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Đổi bài</span>
+                <span class="stat-value" id="shuffle-txt">5</span>
             </div>
         </div>
 
-        <!-- Màn hình tạo/vào phòng Online -->
-        <div id="room-menu" class="menu-screen hidden">
-            <h1>Phòng Trực Tuyến</h1>
-            <div class="btn-group" style="flex-direction: column; align-items: center;">
-                <button onclick="createRoom()" style="width: 220px;">Tạo Phòng Mới</button>
-                <div style="display: flex; gap: 10px; margin-top: 10px;">
-                    <input type="text" id="room-code-input" placeholder="Nhập mã 5 chữ số" maxlength="5" style="width: 150px; text-align: center;">
-                    <button onclick="joinRoom()">Vào Phòng</button>
-                </div>
-            </div>
-            <p id="room-status" style="margin-top: 15px; color: #f1c40f;"></p>
-            <button onclick="backToMain()" style="margin-top: 20px; background: #7f8c8d;">Quay lại</button>
+        <div class="controls-group">
+            <button class="btn btn-accent" id="btn-hint">💡 Gợi ý</button>
+            <button class="btn" id="btn-shuffle">🔀 Đổi hình</button>
+            <button class="btn btn-danger" id="btn-restart">🔄 Đổi mới</button>
         </div>
 
-        <!-- Giao diện trong trận đấu -->
-        <div class="ui-overlay hidden" id="hud">
-            <div>P1 HP: <span id="p1-hp">100</span></div>
-            <div id="room-info">Mã phòng: <span id="display-room-code">----</span></div>
-            <div>P2 HP: <span id="p2-hp">100</span></div>
+        <div class="timer-container">
+            <div class="timer-bar" id="timer-bar"></div>
         </div>
-
-        <canvas id="gameCanvas" width="800" height="450" class="hidden"></canvas>
     </div>
 
-    <div class="controls-hint">
-        <b>Điều khiển (P1):</b> A/D để di chuyển | W để nhảy | J để tấn công / Dùng kỹ năng | K để lướt né
+    <div class="board-outer">
+        <div class="grid-container" id="grid-board"></div>
+        <svg id="svg-canvas"></svg>
     </div>
+</div>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+<div class="modal-overlay" id="modal">
+    <div class="modal-box">
+        <h2 class="modal-title" id="modal-title">CHIẾN THẮNG!</h2>
+        <p class="modal-desc" id="modal-desc">Bạn đã hoàn thành màn chơi!</p>
+        <button class="btn btn-accent" id="modal-btn" style="width:100%; justify-content:center; padding: 10px;">TIẾP TỤC</button>
+    </div>
+</div>
 
-        let gameState = 'MENU'; // MENU, ROOM, PLAYING
-        let gameMode = 'PVE'; // PVE hoặc PVP
-        let peer = null, conn = null;
-        let myId = '', roomCode = '';
-        let isHost = false;
+<script>
+// --- ÂM THANH (Web Audio API) ---
+class SoundController {
+    constructor() {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    playTone(freq, duration, type="sine") {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+    }
+    click() { this.playTone(600, 0.05); }
+    select() { this.playTone(800, 0.08); }
+    match() {
+        this.playTone(523, 0.1);
+        setTimeout(() => this.playTone(659, 0.1), 80);
+        setTimeout(() => this.playTone(783, 0.15), 160);
+    }
+    shuffle() { this.playTone(300, 0.15, "sawtooth"); }
+    win() {
+        const notes = [440, 554, 659, 880];
+        notes.forEach((n, i) => setTimeout(() => this.playTone(n, 0.2), i * 120));
+    }
+    fail() {
+        this.playTone(300, 0.2, "square");
+        setTimeout(() => this.playTone(200, 0.3, "square"), 200);
+    }
+}
+const audio = new SoundController();
 
-        let keys = {};
-        window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-        window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+// --- BỘ ICON POKÉMON SVG (24 LOẠI HÌNH VỚI MÀU NỀN TƯƠNG ỨNG) ---
+const POKEMON_DATA = [
+    { bg: '#3b0764', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#facc15"/><circle cx="35" cy="40" r="5" fill="#000"/><circle cx="65" cy="40" r="5" fill="#000"/><circle cx="25" cy="55" r="7" fill="#ef4444"/><circle cx="75" cy="55" r="7" fill="#ef4444"/><path d="M 40 65 Q 50 75 60 65" stroke="#000" stroke-width="4" fill="none"/><polygon points="20,10 35,30 15,30" fill="#facc15"/><polygon points="80,10 65,30 85,30" fill="#facc15"/></svg>` },
+    { bg: '#451a03', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#f97316"/><circle cx="38" cy="42" r="5" fill="#000"/><circle cx="62" cy="42" r="5" fill="#000"/><path d="M 40 62 Q 50 72 60 62" stroke="#000" stroke-width="4" fill="#fee2e2"/><path d="M 50 20 C 30 10 70 10 50 20" fill="#ef4444"/></svg>` },
+    { bg: '#064e3b', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#34d399"/><circle cx="35" cy="45" r="5" fill="#ef4444"/><circle cx="65" cy="45" r="5" fill="#ef4444"/><ellipse cx="50" cy="60" rx="15" ry="8" fill="#059669"/><path d="M 30 15 Q 50 -5 70 15 Q 50 25 30 15" fill="#ec4899"/></svg>` },
+    { bg: '#172554', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#38bdf8"/><circle cx="35" cy="42" r="5" fill="#000"/><circle cx="65" cy="42" r="5" fill="#000"/><path d="M 35 60 Q 50 75 65 60 Z" fill="#fff" stroke="#000" stroke-width="2"/></svg>` },
+    { bg: '#831843', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#f472b6"/><circle cx="35" cy="45" r="7" fill="#0284c7"/><circle cx="65" cy="45" r="7" fill="#0284c7"/><polygon points="20,15 35,25 15,35" fill="#f472b6"/><polygon points="80,15 65,25 85,35" fill="#f472b6"/><path d="M 45 60 Q 50 65 55 60" stroke="#000" stroke-width="3" fill="none"/></svg>` },
+    { bg: '#78350f', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="55" r="38" fill="#b45309"/><circle cx="35" cy="45" r="5" fill="#000"/><circle cx="65" cy="45" r="5" fill="#000"/><polygon points="25,10 40,25 15,30" fill="#78350f"/><polygon points="75,10 60,25 85,30" fill="#78350f"/><ellipse cx="50" cy="70" rx="20" ry="12" fill="#fef3c7"/></svg>` },
+    { bg: '#312e81', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#a855f7"/><ellipse cx="35" cy="45" rx="6" ry="9" fill="#dc2626"/><ellipse cx="65" cy="45" rx="6" ry="9" fill="#dc2626"/><path d="M 30 65 Q 50 85 70 65" stroke="#fff" stroke-width="4" fill="none"/></svg>` },
+    { bg: '#1e293b', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#94a3b8"/><path d="M 30 45 Q 40 40 50 45 Q 60 40 70 45" stroke="#000" stroke-width="4" fill="none"/><ellipse cx="50" cy="65" rx="25" ry="15" fill="#f8fafc"/></svg>` },
+    { bg: '#713f12', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#eab308"/><ellipse cx="35" cy="40" rx="4" ry="6" fill="#000"/><ellipse cx="65" cy="40" rx="4" ry="6" fill="#000"/><path d="M 30 55 Q 50 50 70 55 Q 50 80 30 55 Z" fill="#fde047" stroke="#000" stroke-width="3"/></svg>` },
+    { bg: '#881337', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#f8fafc"/><path d="M 10 50 A 40 40 0 0 1 90 50 Z" fill="#ef4444"/><circle cx="50" cy="50" r="12" fill="#fff" stroke="#000" stroke-width="4"/><line x1="10" y1="50" x2="38" y2="50" stroke="#000" stroke-width="6"/><line x1="62" y1="50" x2="90" y2="50" stroke="#000" stroke-width="6"/></svg>` },
+    { bg: '#047857', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#a7f3d0"/><circle cx="35" cy="45" r="5" fill="#ef4444"/><circle cx="65" cy="45" r="5" fill="#ef4444"/><path d="M 50 15 Q 70 -5 85 15 Q 65 35 50 15" fill="#10b981"/></svg>` },
+    { bg: '#4c1d95', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#c084fc"/><circle cx="35" cy="45" r="6" fill="#000"/><circle cx="65" cy="45" r="6" fill="#000"/><ellipse cx="50" cy="30" rx="15" ry="8" fill="#fde047"/><path d="M 40 65 Q 50 75 60 65" stroke="#000" stroke-width="3" fill="none"/></svg>` },
+    { bg: '#164e63', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#06b6d4"/><circle cx="35" cy="40" r="4" fill="#000"/><circle cx="65" cy="40" r="4" fill="#000"/><path d="M 45 55 L 55 55 L 50 65 Z" fill="#f97316"/></svg>` },
+    { bg: '#365314', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#84cc16"/><circle cx="35" cy="45" r="5" fill="#000"/><circle cx="65" cy="45" r="5" fill="#000"/><path d="M 30 20 L 40 35 L 20 35 Z" fill="#ea580c"/><path d="M 70 20 L 80 35 L 60 35 Z" fill="#ea580c"/></svg>` },
+    { bg: '#701a75', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#d946ef"/><circle cx="35" cy="42" r="6" fill="#fff"/><circle cx="65" cy="42" r="6" fill="#fff"/><circle cx="35" cy="42" r="3" fill="#000"/><circle cx="65" cy="42" r="3" fill="#000"/><path d="M 40 60 Q 50 70 60 60" stroke="#fff" stroke-width="3" fill="none"/></svg>` },
+    { bg: '#450a0a', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#dc2626"/><circle cx="35" cy="40" r="6" fill="#fde047"/><circle cx="65" cy="40" r="6" fill="#fde047"/><path d="M 25 65 L 75 65 L 50 85 Z" fill="#7f1d1d"/></svg>` },
+    { bg: '#14532d', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#15803d"/><circle cx="35" cy="45" r="4" fill="#fff"/><circle cx="65" cy="45" r="4" fill="#fff"/><path d="M 40 20 Q 50 5 60 20 Q 50 35 40 20" fill="#facc15"/></svg>` },
+    { bg: '#0f172a', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#64748b"/><circle cx="35" cy="45" r="5" fill="#38bdf8"/><circle cx="65" cy="45" r="5" fill="#38bdf8"/><rect x="40" y="60" width="20" height="8" rx="4" fill="#cbd5e1"/></svg>` },
+    { bg: '#2e1065', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#7c3aed"/><circle cx="35" cy="40" r="6" fill="#000"/><circle cx="65" cy="40" r="6" fill="#000"/><path d="M 30 65 C 40 50 60 50 70 65" stroke="#f472b6" stroke-width="4" fill="none"/></svg>` },
+    { bg: '#822727', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#e11d48"/><circle cx="35" cy="45" r="5" fill="#000"/><circle cx="65" cy="45" r="5" fill="#000"/><polygon points="50,15 60,30 40,30" fill="#fbbf24"/></svg>` },
+    { bg: '#0284c7', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#0284c7"/><circle cx="35" cy="42" r="5" fill="#fff"/><circle cx="65" cy="42" r="5" fill="#fff"/><circle cx="35" cy="42" r="2" fill="#000"/><circle cx="65" cy="42" r="2" fill="#000"/><path d="M 40 65 Q 50 55 60 65" stroke="#fff" stroke-width="3" fill="none"/></svg>` },
+    { bg: '#b45309', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#d97706"/><circle cx="35" cy="45" r="5" fill="#000"/><circle cx="65" cy="45" r="5" fill="#000"/><ellipse cx="50" cy="60" rx="10" ry="6" fill="#78350f"/></svg>` },
+    { bg: '#4d7c0f', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#65a30d"/><circle cx="35" cy="40" r="4" fill="#000"/><circle cx="65" cy="40" r="4" fill="#000"/><path d="M 45 55 Q 50 65 55 55 Z" fill="#ef4444"/></svg>` },
+    { bg: '#581c87', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#9333ea"/><circle cx="35" cy="42" r="6" fill="#facc15"/><circle cx="65" cy="42" r="6" fill="#facc15"/><path d="M 35 65 Q 50 75 65 65" stroke="#000" stroke-width="3" fill="none"/></svg>` }
+];
 
-        // Khởi tạo thông số nhân vật theo lớp
-        function createPlayer(x, y, type) {
-            return {
-                x: x, y: y, width: 40, height: 60,
-                vx: 0, vy: 0, speed: 4, jumpForce: -11,
-                isGrounded: false, hp: 100, maxHp: 100,
-                type: type, facing: 1, // 1: phải, -1: trái
-                isAttacking: false, attackCooldown: 0,
-                color: type === 'fighter' ? '#e74c3c' : type === 'swordsman' ? '#3498db' : type === 'mage' ? '#9b59b6' : '#2ecc71',
-                projectiles: []
-            };
+// --- CẤU HÌNH GAME ---
+const COLS = 16; 
+const ROWS = 9;  
+const TOTAL_TILES = COLS * ROWS; 
+
+let board = []; 
+let selectedTile = null;
+let level = 1;
+let score = 0;
+let hints = 5;
+let shuffles = 5;
+let timer = null;
+let timeLeft = 300; 
+const MAX_TIME = 300;
+
+// Element references
+const gridEl = document.getElementById('grid-board');
+const svgEl = document.getElementById('svg-canvas');
+const timerBar = document.getElementById('timer-bar');
+const levelTxt = document.getElementById('level-txt');
+const scoreTxt = document.getElementById('score-txt');
+const hintTxt = document.getElementById('hint-txt');
+const shuffleTxt = document.getElementById('shuffle-txt');
+
+// --- KHỞI TẠO GAME ---
+function initGame() {
+    gridEl.style.setProperty('--grid-cols', COLS);
+    gridEl.style.setProperty('--grid-rows', ROWS);
+    level = 1;
+    score = 0;
+    hints = 5;
+    shuffles = 5;
+    updateStats();
+    startLevel();
+}
+
+function startLevel() {
+    selectedTile = null;
+    timeLeft = MAX_TIME;
+    updateStats();
+    generateBoard();
+    startTimer();
+}
+
+function generateBoard() {
+    let types = [];
+    const numPairs = TOTAL_TILES / 2;
+    for (let i = 0; i < numPairs; i++) {
+        let type = i % POKEMON_DATA.length;
+        types.push(type, type);
+    }
+    
+    // Shuffle
+    for (let i = types.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [types[i], types[j]] = [types[j], types[i]];
+    }
+
+    board = Array(ROWS + 2).fill(0).map(() => Array(COLS + 2).fill(-1));
+
+    let idx = 0;
+    for (let r = 1; r <= ROWS; r++) {
+        for (let c = 1; c <= COLS; c++) {
+            board[r][c] = types[idx++];
         }
+    }
 
-        let player1, player2;
+    // Đảm bảo ban đầu có ít nhất 1 nước đi
+    if (!checkHasValidPair()) {
+        shuffleBoard(false);
+    }
 
-        function showRoomMenu() {
-            document.getElementById('main-menu').classList.add('hidden');
-            document.getElementById('room-menu').classList.remove('hidden');
-        }
+    renderBoard();
+}
 
-        function backToMain() {
-            document.getElementById('room-menu').classList.add('hidden');
-            document.getElementById('main-menu').classList.remove('hidden');
-        }
-
-        function startPVE() {
-            gameMode = 'PVE';
-            const charType = document.getElementById('char-select').value;
-            player1 = createPlayer(100, 320, charType);
-            player2 = createPlayer(660, 320, charType === 'fighter' ? 'swordsman' : 'fighter');
-            startGameplay();
-        }
-
-        function startGameplay() {
-            document.getElementById('main-menu').classList.add('hidden');
-            document.getElementById('room-menu').classList.add('hidden');
-            document.getElementById('hud').classList.remove('hidden');
-            canvas.classList.remove('hidden');
-            gameState = 'PLAYING';
-            requestAnimationFrame(gameLoop);
-        }
-
-        // Tạo mã phòng ngẫu nhiên gồm 5 chữ số
-        function generateRoomCode() {
-            return Math.floor(10000 + Math.random() * 90000).toString();
-        }
-
-        function createRoom() {
-            isHost = true;
-            roomCode = generateRoomCode();
-            document.getElementById('room-status').innerText = 'Đang khởi tạo mã phòng...';
+function renderBoard() {
+    gridEl.innerHTML = '';
+    for (let r = 1; r <= ROWS; r++) {
+        for (let c = 1; c <= COLS; c++) {
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            tile.dataset.r = r;
+            tile.dataset.c = c;
             
-            peer = new Peer();
-            peer.on('open', (id) => {
-                myId = id;
-                // Sử dụng mã phòng 5 số làm tiền tố hoặc ID kết nối
-                document.getElementById('room-status').innerText = `Mã phòng của bạn: ${roomCode}. Đang đợi người chơi khác...`;
-                document.getElementById('display-room-code').innerText = roomCode;
-            });
-
-            peer.on('connection', (connection) => {
-                conn = connection;
-                setupConnection();
-                gameMode = 'PVP';
-                const charType = document.getElementById('char-select').value;
-                player1 = createPlayer(100, 320, charType);
-                player2 = createPlayer(660, 320, charType === 'fighter' ? 'swordsman' : 'fighter');
-                startGameplay();
-            });
-        }
-
-        function joinRoom() {
-            isHost = false;
-            roomCode = document.getElementById('room-code-input').value.trim();
-            if (roomCode.length !== 5) {
-                alert('Vui lòng nhập đúng mã phòng 5 chữ số!');
-                return;
+            const type = board[r][c];
+            if (type === -1) {
+                tile.classList.add('empty');
+            } else {
+                tile.style.backgroundColor = POKEMON_DATA[type].bg;
+                tile.innerHTML = POKEMON_DATA[type].svg;
+                tile.addEventListener('click', () => handleTileClick(r, c));
             }
-            document.getElementById('room-status').innerText = 'Đang kết nối vào phòng...';
-
-            peer = new Peer();
-            peer.on('open', (id) => {
-                // Kết nối tới Host (giả lập sử dụng ID ghép từ roomCode)
-                // Trong môi trường thực tế, roomCode sẽ được ánh xạ qua server trung gian hoặc peer custom id
-                conn = peer.connect(roomCode);
-                setupConnection();
-                gameMode = 'PVP';
-                const charType = document.getElementById('char-select').value;
-                player2 = createPlayer(100, 320, charType); // P2 là máy khách
-                player1 = createPlayer(660, 320, 'fighter');
-                startGameplay();
-            });
+            gridEl.appendChild(tile);
         }
+    }
+}
 
-        function setupConnection() {
-            conn.on('data', (data) => {
-                if (isHost) {
-                    player2.x = data.x;
-                    player2.y = data.y;
-                    player2.hp = data.hp;
-                    if (data.attacking) triggerAttack(player2);
-                } else {
-                    player1.x = data.x;
-                    player1.y = data.y;
-                    player1.hp = data.hp;
-                    if (data.attacking) triggerAttack(player1);
-                }
-            });
+// --- THUẬT TOÁN TÌM ĐƯỜNG NỐI (ONET CONNECT) ---
+function checkMatch(r1, c1, r2, c2) {
+    if (r1 === r2 && c1 === c2) return null;
+    if (board[r1][c1] !== board[r2][c2] || board[r1][c1] === -1) return null;
+
+    // 1. Line Direct (1 đoạn)
+    let path = checkLine(r1, c1, r2, c2);
+    if (path) return path;
+
+    // 2. L-Shape (2 đoạn)
+    path = checkRect(r1, c1, r2, c2);
+    if (path) return path;
+
+    // 3. Z/U-Shape (3 đoạn)
+    path = checkMore(r1, c1, r2, c2);
+    if (path) return path;
+
+    return null;
+}
+
+function checkLine(r1, c1, r2, c2) {
+    if (r1 !== r2 && c1 !== c2) return null;
+    if (r1 === r2) {
+        let minC = Math.min(c1, c2), maxC = Math.max(c1, c2);
+        for (let c = minC + 1; c < maxC; c++) {
+            if (board[r1][c] !== -1) return null;
         }
-
-        function triggerAttack(p) {
-            p.isAttacking = true;
-            setTimeout(() => p.isAttacking = false, 200);
+        return [{r: r1, c: c1}, {r: r2, c: c2}];
+    } else {
+        let minR = Math.min(r1, r2), maxR = Math.max(r1, r2);
+        for (let r = minR + 1; r < maxR; r++) {
+            if (board[r][c1] !== -1) return null;
         }
+        return [{r: r1, c: c1}, {r: r2, c: c2}];
+    }
+}
 
-        // Xử lý logic di chuyển và va chạm
-        function updatePlayer(p) {
-            p.vy += 0.5; // Trọng lực
-            p.x += p.vx;
-            p.y += p.vy;
+function checkRect(r1, c1, r2, c2) {
+    // Góc 1: (r1, c2)
+    if (board[r1][c2] === -1) {
+        if (checkLine(r1, c1, r1, c2) && checkLine(r1, c2, r2, c2)) {
+            return [{r: r1, c: c1}, {r: r1, c: c2}, {r: r2, c: c2}];
+        }
+    }
+    // Góc 2: (r2, c1)
+    if (board[r2][c1] === -1) {
+        if (checkLine(r1, c1, r2, c1) && checkLine(r2, c1, r2, c2)) {
+            return [{r: r1, c: c1}, {r: r2, c: c1}, {r: r2, c: c2}];
+        }
+    }
+    return null;
+}
 
-            // Sàn nhà
-            if (p.y > 320) {
-                p.y = 320;
-                p.vy = 0;
-                p.isGrounded = true;
+function checkMore(r1, c1, r2, c2) {
+    // Quét theo chiều ngang
+    for (let c = 0; c <= COLS + 1; c++) {
+        if (c === c1) continue;
+        if (board[r1][c] === -1 || c === c1) {
+            if (checkLine(r1, c1, r1, c)) {
+                let rect = checkRect(r1, c, r2, c2);
+                if (rect) return [{r: r1, c: c1}, ...rect];
             }
+        }
+    }
+    // Quét theo chiều dọc
+    for (let r = 0; r <= ROWS + 1; r++) {
+        if (r === r1) continue;
+        if (board[r][c1] === -1 || r === r1) {
+            if (checkLine(r1, c1, r, c1)) {
+                let rect = checkRect(r, c1, r2, c2);
+                if (rect) return [{r: r1, c: c1}, ...rect];
+            }
+        }
+    }
+    return null;
+}
 
-            // Giới hạn biên màn hình
-            if (p.x < 0) p.x = 0;
-            if (p.x > canvas.width - p.width) p.x = canvas.width - p.width;
+// --- XỬ LÝ SỰ KIỆN CLICK ---
+function handleTileClick(r, c) {
+    if (board[r][c] === -1) return;
 
-            if (p.attackCooldown > 0) p.attackCooldown--;
+    clearHints();
+
+    if (!selectedTile) {
+        selectedTile = {r, c};
+        getTileEl(r, c).classList.add('selected');
+        audio.select();
+    } else {
+        if (selectedTile.r === r && selectedTile.c === c) {
+            getTileEl(r, c).classList.remove('selected');
+            selectedTile = null;
+            audio.click();
+            return;
         }
 
-        function update() {
-            if (gameState !== 'PLAYING') return;
-
-            // Điều khiển Player 1
-            player1.vx = 0;
-            if (keys['a']) { player1.vx = -player1.speed; player1.facing = -1; }
-            if (keys['d']) { player1.vx = player1.speed; player1.facing = 1; }
-            if (keys['w'] && player1.isGrounded) { player1.vy = player1.jumpForce; player1.isGrounded = false; }
+        const path = checkMatch(selectedTile.r, selectedTile.c, r, c);
+        if (path) {
+            // Nối thành công
+            audio.match();
+            drawPath(path);
             
-            if (keys['j'] && player1.attackCooldown === 0) {
-                triggerAttack(player1);
-                player1.attackCooldown = 30;
-                // Kiểm tra trúng đòn P2
-                if (Math.abs(player1.x - player2.x) < 60 && Math.abs(player1.y - player2.y) < 40) {
-                    player2.hp = Math.max(0, player2.hp - 10);
+            const prev = {...selectedTile};
+            selectedTile = null;
+
+            setTimeout(() => {
+                clearPath();
+                board[prev.r][prev.c] = -1;
+                board[r][c] = -1;
+                
+                score += 100;
+                updateStats();
+
+                // Áp dụng cơ chế dồn ô theo Level
+                applyGravity();
+                renderBoard();
+
+                if (checkWin()) {
+                    handleWin();
+                } else if (!checkHasValidPair()) {
+                    autoShuffle();
                 }
-            }
+            }, 200);
 
-            updatePlayer(player1);
-            updatePlayer(player2);
+        } else {
+            // Nối thất bại
+            audio.click();
+            getTileEl(selectedTile.r, selectedTile.c).classList.remove('selected');
+            selectedTile = {r, c};
+            getTileEl(r, c).classList.add('selected');
+        }
+    }
+}
 
-            // AI đơn giản cho PVE
-            if (gameMode === 'PVE') {
-                if (player2.x > player1.x + 50) {
-                    player2.vx = -2; player2.facing = -1;
-                } else if (player2.x < player1.x - 50) {
-                    player2.vx = 2; player2.facing = 1;
-                } else {
-                    player2.vx = 0;
-                    if (Math.random() < 0.02 && player2.attackCooldown === 0) {
-                        triggerAttack(player2);
-                        player2.attackCooldown = 40;
-                        if (Math.abs(player2.x - player1.x) < 60) {
-                            player1.hp = Math.max(0, player1.hp - 5);
-                        }
+// --- VẼ ĐƯỜNG NỐI SVG ---
+function drawPath(path) {
+    svgEl.innerHTML = '';
+    const rect = gridEl.getBoundingClientRect();
+    const boardRect = document.querySelector('.board-outer').getBoundingClientRect();
+    
+    svgEl.setAttribute('width', boardRect.width);
+    svgEl.setAttribute('height', boardRect.height);
+
+    const cellWidth = rect.width / COLS;
+    const cellHeight = rect.height / ROWS;
+    const offsetX = rect.left - boardRect.left;
+    const offsetY = rect.top - boardRect.top;
+
+    let pointsStr = path.map(p => {
+        let x = offsetX + (p.c - 0.5) * cellWidth;
+        let y = offsetY + (p.r - 0.5) * cellHeight;
+        return `${x},${y}`;
+    }).join(' ');
+
+    const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    polyline.setAttribute('points', pointsStr);
+    polyline.setAttribute('class', 'connector-path');
+    svgEl.appendChild(polyline);
+}
+
+function clearPath() {
+    svgEl.innerHTML = '';
+}
+
+// --- CƠ CHẾ DỒN Ô THEO LEVEL (HARDCORE EXTENDED) ---
+function applyGravity() {
+    switch(level) {
+        case 2: // Dồn xuống
+            for (let c = 1; c <= COLS; c++) {
+                let emptyRow = ROWS;
+                for (let r = ROWS; r >= 1; r--) {
+                    if (board[r][c] !== -1) {
+                        board[emptyRow][c] = board[r][c];
+                        if (emptyRow !== r) board[r][c] = -1;
+                        emptyRow--;
                     }
                 }
             }
-
-            // Đồng bộ dữ liệu qua mạng nếu chơi PVP
-            if (gameMode === 'PVP' && conn && conn.open) {
-                if (isHost) {
-                    conn.send({ x: player1.x, y: player1.y, hp: player1.hp, attacking: player1.isAttacking });
-                } else {
-                    conn.send({ x: player2.x, y: player2.y, hp: player2.hp, attacking: player2.isAttacking });
+            break;
+        case 3: // Dồn lên
+            for (let c = 1; c <= COLS; c++) {
+                let emptyRow = 1;
+                for (let r = 1; r <= ROWS; r++) {
+                    if (board[r][c] !== -1) {
+                        board[emptyRow][c] = board[r][c];
+                        if (emptyRow !== r) board[r][c] = -1;
+                        emptyRow++;
+                    }
                 }
             }
+            break;
+        case 4: // Dồn sang trái
+            for (let r = 1; r <= ROWS; r++) {
+                let emptyCol = 1;
+                for (let c = 1; c <= COLS; c++) {
+                    if (board[r][c] !== -1) {
+                        board[r][emptyCol] = board[r][c];
+                        if (emptyCol !== c) board[r][c] = -1;
+                        emptyCol++;
+                    }
+                }
+            }
+            break;
+        case 5: // Dồn sang phải
+            for (let r = 1; r <= ROWS; r++) {
+                let emptyCol = COLS;
+                for (let c = COLS; c >= 1; c--) {
+                    if (board[r][c] !== -1) {
+                        board[r][emptyCol] = board[r][c];
+                        if (emptyCol !== c) board[r][c] = -1;
+                        emptyCol--;
+                    }
+                }
+            }
+            break;
+        case 6: // Dồn vào giữa hàng (Split Horizontal)
+            for (let r = 1; r <= ROWS; r++) {
+                let leftVals = [], rightVals = [];
+                let mid = COLS / 2;
+                for (let c = 1; c <= mid; c++) if (board[r][c] !== -1) leftVals.push(board[r][c]);
+                for (let c = mid + 1; c <= COLS; c++) if (board[r][c] !== -1) rightVals.push(board[r][c]);
+                
+                for (let c = 1; c <= COLS; c++) board[r][c] = -1;
+                
+                let idxL = mid - leftVals.length + 1;
+                for (let val of leftVals) board[r][idxL++] = val;
+                
+                let idxR = mid + 1;
+                for (let val of rightVals) board[r][idxR++] = val;
+            }
+            break;
+        case 7: // Dồn ra 2 biên (Split Vertical)
+            for (let c = 1; c <= COLS; c++) {
+                let topVals = [], botVals = [];
+                let mid = Math.floor(ROWS / 2);
+                for (let r = 1; r <= mid; r++) if (board[r][c] !== -1) topVals.push(board[r][c]);
+                for (let r = mid + 1; r <= ROWS; r++) if (board[r][c] !== -1) botVals.push(board[r][c]);
+                
+                for (let r = 1; r <= ROWS; r++) board[r][c] = -1;
+                
+                let idxT = 1;
+                for (let val of topVals) board[r][idxT++] = val;
+                
+                let idxB = ROWS - botVals.length + 1;
+                for (let val of botVals) board[r][idxB++] = val;
+            }
+            break;
+    }
+}
 
-            // Cập nhật thanh HP trên giao diện
-            document.getElementById('p1-hp').innerText = player1.hp;
-            document.getElementById('p2-hp').innerText = player2.hp;
+// --- HELPER & LOGIC KHÁC ---
+function getTileEl(r, c) {
+    return gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+}
 
-            if (player1.hp <= 0 || player2.hp <= 0) {
-                alert(player1.hp <= 0 ? "Player 2 Thắng!" : "Player 1 Thắng!");
-                location.reload();
+function checkHasValidPair() {
+    let tiles = [];
+    for (let r = 1; r <= ROWS; r++) {
+        for (let c = 1; c <= COLS; c++) {
+            if (board[r][c] !== -1) tiles.push({r, c, type: board[r][c]});
+        }
+    }
+    for (let i = 0; i < tiles.length; i++) {
+        for (let j = i + 1; j < tiles.length; j++) {
+            if (tiles[i].type === tiles[j].type) {
+                if (checkMatch(tiles[i].r, tiles[i].c, tiles[j].r, tiles[j].c)) {
+                    return {t1: tiles[i], t2: tiles[j]};
+                }
             }
         }
+    }
+    return null;
+}
 
-        // Vẽ đồ họa nhân vật & hiệu ứng chiêu thức
-        function drawPlayer(p) {
-            ctx.fillStyle = p.color;
-            ctx.fillRect(p.x, p.y, p.width, p.height);
+function shuffleBoard(playSound = true) {
+    let activeTypes = [];
+    for (let r = 1; r <= ROWS; r++) {
+        for (let c = 1; c <= COLS; c++) {
+            if (board[r][c] !== -1) activeTypes.push(board[r][c]);
+        }
+    }
+    if (activeTypes.length === 0) return;
 
-            // Vẽ mắt định hướng mặt nhân vật
-            ctx.fillStyle = '#fff';
-            let eyeX = p.facing === 1 ? p.x + 25 : p.x + 10;
-            ctx.fillRect(eyeX, p.y + 15, 6, 6);
-
-            // Hiệu ứng tấn công (Mô phỏng đòn đánh / chém / phép)
-            if (p.isAttacking) {
-                ctx.fillStyle = '#f1c40f';
-                let atkX = p.facing === 1 ? p.x + p.width : p.x - 30;
-                ctx.fillRect(atkX, p.y + 15, 30, 20);
+    do {
+        for (let i = activeTypes.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [activeTypes[i], activeTypes[j]] = [activeTypes[j], activeTypes[i]];
+        }
+        let idx = 0;
+        for (let r = 1; r <= ROWS; r++) {
+            for (let c = 1; c <= COLS; c++) {
+                if (board[r][c] !== -1) board[r][c] = activeTypes[idx++];
             }
         }
+    } while (!checkHasValidPair() && activeTypes.length > 2);
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (playSound) audio.shuffle();
+    renderBoard();
+}
 
-            // Vẽ nền đất
-            ctx.fillStyle = '#34495e';
-            ctx.fillRect(0, 380, canvas.width, 70);
+function autoShuffle() {
+    if (shuffles > 0) {
+        shuffles--;
+        updateStats();
+        shuffleBoard();
+    } else {
+        handleGameOver("Bế tắc! Bạn đã hết lượt đổi hình.");
+    }
+}
 
-            drawPlayer(player1);
-            drawPlayer(player2);
+function clearHints() {
+    document.querySelectorAll('.tile.hint').forEach(el => el.classList.remove('hint'));
+}
+
+function checkWin() {
+    for (let r = 1; r <= ROWS; r++) {
+        for (let c = 1; c <= COLS; c++) {
+            if (board[r][c] !== -1) return false;
         }
+    }
+    return true;
+}
 
-        function gameLoop() {
-            update();
-            draw();
-            if (gameState === 'PLAYING') {
-                requestAnimationFrame(gameLoop);
-            }
+function startTimer() {
+    clearInterval(timer);
+    timer = setInterval(() => {
+        timeLeft--;
+        timerBar.style.width = `${(timeLeft / MAX_TIME) * 100}%`;
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            handleGameOver("Hết giờ rồi!");
         }
-    </script>
+    }, 1000);
+}
+
+function updateStats() {
+    levelTxt.textContent = level;
+    scoreTxt.textContent = score;
+    hintTxt.textContent = hints;
+    shuffleTxt.textContent = shuffles;
+}
+
+function handleWin() {
+    clearInterval(timer);
+    audio.win();
+    showModal(`HOÀN THÀNH MÀN ${level}!`, `Điểm của bạn: ${score}`, () => {
+        level++;
+        startLevel();
+    });
+}
+
+function handleGameOver(reason) {
+    clearInterval(timer);
+    audio.fail();
+    showModal("GAME OVER", `${reason}\nTổng điểm: ${score}`, () => {
+        initGame();
+    });
+}
+
+function showModal(title, desc, onBtnClick) {
+    const modal = document.getElementById('modal');
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-desc').innerText = desc;
+    const btn = document.getElementById('modal-btn');
+    
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    
+    newBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+        onBtnClick();
+    });
+    modal.classList.add('active');
+}
+
+// --- SU KIEN BUTTON ---
+document.getElementById('btn-hint').addEventListener('click', () => {
+    if (hints <= 0) return;
+    const pair = checkHasValidPair();
+    if (pair) {
+        hints--;
+        updateStats();
+        clearHints();
+        getTileEl(pair.t1.r, pair.t1.c).classList.add('hint');
+        getTileEl(pair.t2.r, pair.t2.c).classList.add('hint');
+        audio.select();
+    }
+});
+
+document.getElementById('btn-shuffle').addEventListener('click', () => {
+    if (shuffles <= 0) return;
+    shuffles--;
+    updateStats();
+    shuffleBoard();
+});
+
+document.getElementById('btn-restart').addEventListener('click', () => {
+    initGame();
+});
+
+// Chạy game
+initGame();
+</script>
 </body>
 </html>
