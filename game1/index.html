@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pikachu Onet - Animals Edition</title>
+    <title>Pikachu Onet - Animals TikTok Edition</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -371,13 +371,15 @@
         </div>
 
         <div class="controls-group">
-            <!-- Nhạc nền selection -->
+            <!-- Nhạc nền selection 5 BÀI TIKTOK VIRAL -->
             <select class="select-music" id="music-select">
-                <option value="1">🎵 Nhạc 1: Retro Chill</option>
-                <option value="2">🎵 Nhạc 2: Arcade Fast</option>
-                <option value="3">🎵 Nhạc 3: Tension</option>
+                <option value="1">🎵 TikTok 1: Chill Lo-Fi Beat</option>
+                <option value="2">🎵 TikTok 2: Viral Bounce EDM</option>
+                <option value="3">🎵 TikTok 3: Upbeat Pop Vibe</option>
+                <option value="4">🎵 TikTok 4: Synthwave Retro</option>
+                <option value="5">🎵 TikTok 5: Cyber Phonk Beat</option>
             </select>
-            <button class="btn" id="btn-music-toggle">🔊 Mute</button>
+            <button class="btn" id="btn-music-toggle">🔊 Bật Nhạc</button>
 
             <button class="btn btn-accent" id="btn-hint">💡 Gợi ý</button>
             <button class="btn" id="btn-shuffle">🔀 Đổi hình</button>
@@ -404,7 +406,7 @@
 </div>
 
 <script>
-// --- HỆ THỐNG ÂM THANH & NHẠC NỀN SYNTHESIZER ---
+// --- HỆ THỐNG ÂM THANH & 5 BÀI NHẠC TIKTOK NON-COPYRIGHT SYNTHESIZER ---
 class SoundController {
     constructor() {
         this.ctx = null;
@@ -459,17 +461,20 @@ class SoundController {
         if (this.musicTimer) clearInterval(this.musicTimer);
         this.noteIndex = 0;
         
+        // 5 Giai điệu TikTok Viral Non-Copyright
         const tracks = {
-            1: { bpm: 220, notes: [261.6, 329.6, 392, 523.2, 392, 329.6, 293.7, 349.2, 440, 587.3, 440, 349.2] },
-            2: { bpm: 150, notes: [523.2, 587.3, 659.3, 783.9, 659.3, 587.3, 523.2, 392, 440, 523.2, 659.3, 523.2] },
-            3: { bpm: 180, notes: [220, 233.1, 246.9, 261.6, 246.9, 233.1, 220, 196, 220, 261.6, 220, 196] }
+            1: { bpm: 280, wave: "triangle", notes: [261.6, 329.6, 392, 523.2, 392, 329.6, 293.7, 349.2, 440, 587.3, 440, 349.2] }, // Lo-Fi Chill
+            2: { bpm: 140, wave: "square",   notes: [523.2, 587.3, 659.3, 783.9, 659.3, 587.3, 523.2, 392, 440, 523.2, 659.3, 523.2] }, // Bounce EDM
+            3: { bpm: 160, wave: "sine",     notes: [329.6, 392, 440, 523.2, 440, 392, 329.6, 293.7, 329.6, 392, 440, 392] },       // Upbeat Pop
+            4: { bpm: 200, wave: "sawtooth", notes: [440, 554.3, 659.3, 880, 659.3, 554.3, 440, 330, 440, 554.3, 659.3, 554.3] },  // Synthwave
+            5: { bpm: 130, wave: "sawtooth", notes: [174.6, 196, 220, 261.6, 220, 196, 174.6, 146.8, 174.6, 196, 220, 196] }        // Cyber Phonk
         };
 
         const current = tracks[this.currentTrack];
         this.musicTimer = setInterval(() => {
             if (!this.isMuted) {
                 const note = current.notes[this.noteIndex % current.notes.length];
-                this.playTone(note, 0.15, "triangle", 0.03);
+                this.playTone(note, 0.15, current.wave, 0.03);
                 this.noteIndex++;
             }
         }, current.bpm);
@@ -481,55 +486,31 @@ class SoundController {
 }
 const audio = new SoundController();
 
-// --- 24 CON VẬT NGOÀI ĐỜI THẬT (SVG SVG VECTOR SẮC NÉT) ---
+// --- 24 CON VẬT NGOÀI ĐỜI THẬT (SVG VECTOR SẮC NÉT) ---
 const ANIMAL_DATA = [
-    // 1. Chó
     { bg: '#78350f', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#d97706"/><circle cx="35" cy="42" r="5" fill="#000"/><circle cx="65" cy="42" r="5" fill="#000"/><ellipse cx="50" cy="62" rx="14" ry="9" fill="#fff"/><circle cx="50" cy="57" r="5" fill="#000"/><path d="M 20 20 Q 35 15 35 35 Z" fill="#78350f"/><path d="M 80 20 Q 65 15 65 35 Z" fill="#78350f"/></svg>` },
-    // 2. Mèo
     { bg: '#451a03', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#f97316"/><polygon points="15,15 40,25 25,45" fill="#ea580c"/><polygon points="85,15 60,25 75,45" fill="#ea580c"/><circle cx="35" cy="45" r="5" fill="#22c55e"/><circle cx="65" cy="45" r="5" fill="#22c55e"/><polygon points="50,55 45,60 55,60" fill="#ef4444"/><line x1="15" y1="55" x2="35" y2="57" stroke="#000" stroke-width="2"/><line x1="85" y1="55" x2="65" y2="57" stroke="#000" stroke-width="2"/></svg>` },
-    // 3. Hổ
     { bg: '#c2410c', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#ea580c"/><circle cx="35" cy="45" r="5" fill="#000"/><circle cx="65" cy="45" r="5" fill="#000"/><ellipse cx="50" cy="65" rx="15" ry="10" fill="#fff"/><circle cx="50" cy="60" r="4" fill="#000"/><path d="M 50 15 L 50 30 M 35 20 L 45 25 M 65 20 L 55 25" stroke="#000" stroke-width="4"/></svg>` },
-    // 4. Voi
     { bg: '#334155', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#94a3b8"/><circle cx="20" cy="45" r="18" fill="#64748b"/><circle cx="80" cy="45" r="18" fill="#64748b"/><circle cx="38" cy="45" r="4" fill="#000"/><circle cx="62" cy="45" r="4" fill="#000"/><path d="M 50 55 Q 50 80 65 70" stroke="#94a3b8" stroke-width="10" fill="none" stroke-linecap="round"/></svg>` },
-    // 5. Sư tử
     { bg: '#9a3412', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#7c2d12"/><circle cx="50" cy="50" r="32" fill="#fde047"/><circle cx="38" cy="42" r="4" fill="#000"/><circle cx="62" cy="42" r="4" fill="#000"/><ellipse cx="50" cy="58" rx="10" ry="6" fill="#fff"/><polygon points="50,54 46,58 54,58" fill="#000"/></svg>` },
-    // 6. Gấu Trúc (Panda)
     { bg: '#0f172a', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#fff"/><circle cx="25" cy="25" r="12" fill="#000"/><circle cx="75" cy="25" r="12" fill="#000"/><ellipse cx="38" cy="45" rx="8" ry="11" fill="#000"/><ellipse cx="62" cy="45" rx="8" ry="11" fill="#000"/><circle cx="38" cy="45" r="3" fill="#fff"/><circle cx="62" cy="45" r="3" fill="#fff"/><ellipse cx="50" cy="62" rx="6" ry="4" fill="#000"/></svg>` },
-    // 7. Khỉ
     { bg: '#713f12', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#a16207"/><circle cx="18" cy="45" r="12" fill="#fde047"/><circle cx="82" cy="45" r="12" fill="#fde047"/><ellipse cx="50" cy="55" rx="25" ry="20" fill="#fde047"/><circle cx="38" cy="40" r="4" fill="#000"/><circle cx="62" cy="40" r="4" fill="#000"/><path d="M 42 63 Q 50 70 58 63" stroke="#000" stroke-width="3" fill="none"/></svg>` },
-    // 8. Cáo
     { bg: '#881337', svg: `<svg viewBox="0 0 100 100"><polygon points="15,20 40,30 20,60" fill="#be123c"/><polygon points="85,20 60,30 80,60" fill="#be123c"/><circle cx="50" cy="50" r="36" fill="#e11d48"/><polygon points="50,85 25,50 75,50" fill="#fff"/><circle cx="35" cy="45" r="4" fill="#000"/><circle cx="65" cy="45" r="4" fill="#000"/><circle cx="50" cy="78" r="5" fill="#000"/></svg>` },
-    // 9. Rùa
     { bg: '#064e3b', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="55" r="35" fill="#047857"/><circle cx="50" cy="25" r="15" fill="#10b981"/><circle cx="45" cy="22" r="2" fill="#000"/><circle cx="55" cy="22" r="2" fill="#000"/><path d="M 30 55 L 70 55 M 50 35 L 50 75" stroke="#065f46" stroke-width="4"/></svg>` },
-    // 10. Ếch
     { bg: '#14532d', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="55" r="35" fill="#22c55e"/><circle cx="30" cy="25" r="12" fill="#22c55e"/><circle cx="70" cy="25" r="12" fill="#22c55e"/><circle cx="30" cy="25" r="5" fill="#fff"/><circle cx="70" cy="25" r="5" fill="#fff"/><circle cx="30" cy="25" r="2" fill="#000"/><circle cx="70" cy="25" r="2" fill="#000"/><path d="M 35 65 Q 50 75 65 65" stroke="#15803d" stroke-width="4" fill="none"/></svg>` },
-    // 11. Chim Cánh Cụt
     { bg: '#1e1b4b', svg: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="32" ry="40" fill="#0f172a"/><ellipse cx="50" cy="55" rx="20" ry="28" fill="#fff"/><circle cx="40" cy="35" r="3" fill="#000"/><circle cx="60" cy="35" r="3" fill="#000"/><polygon points="50,40 43,48 57,48" fill="#f59e0b"/></svg>` },
-    // 12. Cú Mèo
     { bg: '#312e81', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#6366f1"/><circle cx="35" cy="45" r="14" fill="#fff"/><circle cx="65" cy="45" r="14" fill="#fff"/><circle cx="35" cy="45" r="6" fill="#000"/><circle cx="65" cy="45" r="6" fill="#000"/><polygon points="50,55 44,63 56,63" fill="#f59e0b"/></svg>` },
-    // 13. Heo (Lợn)
     { bg: '#831843', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#f472b6"/><circle cx="35" cy="40" r="4" fill="#000"/><circle cx="65" cy="40" r="4" fill="#000"/><ellipse cx="50" cy="60" rx="16" ry="10" fill="#f43f5e"/><circle cx="44" cy="60" r="3" fill="#881337"/><circle cx="56" cy="60" r="3" fill="#881337"/></svg>` },
-    // 14. Thỏ
     { bg: '#701a75', svg: `<svg viewBox="0 0 100 100"><ellipse cx="32" cy="25" rx="8" ry="22" fill="#f472b6"/><ellipse cx="68" cy="25" rx="8" ry="22" fill="#f472b6"/><circle cx="50" cy="58" r="34" fill="#fff"/><circle cx="38" cy="50" r="4" fill="#000"/><circle cx="62" cy="50" r="4" fill="#000"/><polygon points="50,60 45,65 55,65" fill="#f43f5e"/></svg>` },
-    // 15. Bò / Trâu
     { bg: '#164e63', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="55" r="35" fill="#e2e8f0"/><path d="M 20 25 Q 30 35 35 45" stroke="#000" stroke-width="6" fill="none"/><path d="M 80 25 Q 70 35 65 45" stroke="#000" stroke-width="6" fill="none"/><circle cx="38" cy="45" r="4" fill="#000"/><circle cx="62" cy="45" r="4" fill="#000"/><ellipse cx="50" cy="65" rx="18" ry="12" fill="#fbcfe8"/><circle cx="43" cy="65" r="3" fill="#000"/><circle cx="57" cy="65" r="3" fill="#000"/></svg>` },
-    // 16. Cá Thần Tiên / Cá Ngoại Đời
     { bg: '#0284c7', svg: `<svg viewBox="0 0 100 100"><ellipse cx="45" cy="50" rx="30" ry="25" fill="#38bdf8"/><polygon points="70,50 90,30 90,70" fill="#0284c7"/><circle cx="30" cy="45" r="4" fill="#000"/><path d="M 40 60 Q 50 65 60 60" stroke="#000" stroke-width="2" fill="none"/></svg>` },
-    // 17. Bạch Tuộc
     { bg: '#581c87', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="42" r="32" fill="#c084fc"/><circle cx="38" cy="40" r="5" fill="#fff"/><circle cx="62" cy="40" r="5" fill="#fff"/><circle cx="38" cy="40" r="2" fill="#000"/><circle cx="62" cy="40" r="2" fill="#000"/><path d="M 20 70 Q 25 85 30 70 Q 35 85 40 70 Q 45 85 50 70 Q 55 85 60 70 Q 65 85 70 70 Q 75 85 80 70" stroke="#c084fc" stroke-width="6" fill="none"/></svg>` },
-    // 18. Ong
     { bg: '#713f12', svg: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="30" ry="22" fill="#facc15"/><line x1="40" y1="28" x2="40" y2="72" stroke="#000" stroke-width="6"/><line x1="55" y1="28" x2="55" y2="72" stroke="#000" stroke-width="6"/><circle cx="30" cy="45" r="3" fill="#000"/><ellipse cx="45" cy="22" rx="12" ry="8" fill="#e0f2fe"/><ellipse cx="60" cy="22" rx="12" ry="8" fill="#e0f2fe"/></svg>` },
-    // 19. Bướm
     { bg: '#4c1d95', svg: `<svg viewBox="0 0 100 100"><ellipse cx="30" cy="35" rx="18" ry="14" fill="#f472b6"/><ellipse cx="70" cy="35" rx="18" ry="14" fill="#f472b6"/><ellipse cx="32" cy="60" rx="14" ry="10" fill="#fb7185"/><ellipse cx="68" cy="60" rx="14" ry="10" fill="#fb7185"/><ellipse cx="50" cy="50" rx="5" ry="25" fill="#000"/></svg>` },
-    // 20. Chim Én
     { bg: '#0369a1', svg: `<svg viewBox="0 0 100 100"><path d="M 10 40 Q 50 10 90 40 Q 50 45 10 40 Z" fill="#0284c7"/><circle cx="50" cy="45" r="12" fill="#0284c7"/><polygon points="50,55 45,75 55,75" fill="#0284c7"/><circle cx="46" cy="42" r="2" fill="#fff"/><circle cx="54" cy="42" r="2" fill="#fff"/></svg>` },
-    // 21. Cáo Ngựa / Ngựa
     { bg: '#78350f', svg: `<svg viewBox="0 0 100 100"><path d="M 30 75 L 30 40 L 60 25 L 75 35 L 55 50 L 55 75 Z" fill="#b45309"/><circle cx="62" cy="32" r="3" fill="#000"/><path d="M 30 35 Q 20 45 25 65" stroke="#451a03" stroke-width="6" fill="none"/></svg>` },
-    // 22. Sâu Róm / Sâu
     { bg: '#365314', svg: `<svg viewBox="0 0 100 100"><circle cx="25" cy="55" r="12" fill="#84cc16"/><circle cx="42" cy="55" r="12" fill="#65a30d"/><circle cx="59" cy="55" r="12" fill="#4d7c0f"/><circle cx="75" cy="50" r="14" fill="#84cc16"/><circle cx="78" cy="45" r="2" fill="#000"/></svg>` },
-    // 23. Cá Thần Tiên Cá Cảnh / Cá Vàng
     { bg: '#c2410c', svg: `<svg viewBox="0 0 100 100"><circle cx="45" cy="50" r="25" fill="#f97316"/><polygon points="70,50 90,30 85,50 90,70" fill="#ea580c"/><circle cx="32" cy="42" r="4" fill="#fff"/><circle cx="32" cy="42" r="2" fill="#000"/></svg>` },
-    // 24. Chuột
     { bg: '#3f3f46', svg: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="55" rx="30" ry="22" fill="#71717a"/><circle cx="30" cy="35" r="12" fill="#f472b6"/><circle cx="30" cy="35" r="8" fill="#71717a"/><circle cx="60" cy="50" r="3" fill="#000"/><circle cx="75" cy="55" r="4" fill="#f472b6"/></svg>` }
 ];
 
@@ -556,14 +537,14 @@ const scoreTxt = document.getElementById('score-txt');
 const hintTxt = document.getElementById('hint-txt');
 const shuffleTxt = document.getElementById('shuffle-txt');
 
-// --- BẮT ĐẦU GAME TỪ START MENU ---
+// BẮT ĐẦU GAME
 document.getElementById('btn-start').addEventListener('click', () => {
     document.getElementById('start-screen').classList.add('hidden');
     audio.startMusic();
     initGame();
 });
 
-// --- NHẠC NỀN EVENT LISTENERS ---
+// EVENT NHẠC NỀN TIKTOK
 const musicSelect = document.getElementById('music-select');
 const btnMusicToggle = document.getElementById('btn-music-toggle');
 
@@ -574,7 +555,7 @@ musicSelect.addEventListener('change', (e) => {
 
 btnMusicToggle.addEventListener('click', () => {
     audio.isMuted = !audio.isMuted;
-    btnMusicToggle.textContent = audio.isMuted ? "🔇 Muted" : "🔊 Sound ON";
+    btnMusicToggle.textContent = audio.isMuted ? "🔇 Tắt Nhạc" : "🔊 Bật Nhạc";
 });
 
 function initGame() {
@@ -644,7 +625,7 @@ function renderBoard() {
     }
 }
 
-// --- ONET ALGORITHM ---
+// ONET ALGORITHM
 function checkMatch(r1, c1, r2, c2) {
     if (r1 === r2 && c1 === c2) return null;
     if (board[r1][c1] !== board[r2][c2] || board[r1][c1] === -1) return null;
