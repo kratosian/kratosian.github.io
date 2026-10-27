@@ -199,18 +199,6 @@
         .btn-accent:hover:not(:disabled) { background: #b45309; }
         .btn-danger { background: #dc2626; border-color: #ef4444; }
 
-        .select-music {
-            background: #334155;
-            color: #fff;
-            border: 1px solid #475569;
-            border-radius: 8px;
-            padding: 6px 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            outline: none;
-            cursor: pointer;
-        }
-
         .board-outer {
             position: relative;
             background: rgba(15, 23, 42, 0.6);
@@ -334,9 +322,14 @@
 </head>
 <body>
 
+<!-- CHỈ ĐỊNH FILE NHẠC PHÁT TỰ ĐỘNG KHI VÀO GAME -->
+<audio id="bg-music" loop preload="auto">
+    <source src="nhac.mp3" type="audio/mpeg">
+</audio>
+
 <div class="start-screen" id="start-screen">
     <div class="start-title">🐾 ONET ANIMALS 🐾</div>
-    <div class="start-subtitle">Thách thức trí nhớ & Tốc độ nối hình con vật!</div>
+    <div class="start-subtitle">Sao Mình Chưa Nắm Tay Nhau (Jerk Drill Remix)</div>
     <button class="btn-start-game" id="btn-start">▶ VÀO GAME</button>
 </div>
 
@@ -366,17 +359,7 @@
         </div>
 
         <div class="controls-group">
-            <!-- Đã thêm option Bài Sao Mình Chưa Nắm Tay Nhau (Young Tachi Drill Mix) -->
-            <select class="select-music" id="music-select">
-                <option value="6">🔥 HOT: Sao Mình Chưa Nắm Tay (Drill)</option>
-                <option value="1">🎵 TikTok 1: Chill Lo-Fi Beat</option>
-                <option value="2">🎵 TikTok 2: Viral Bounce EDM</option>
-                <option value="3">🎵 TikTok 3: Upbeat Pop Vibe</option>
-                <option value="4">🎵 TikTok 4: Synthwave Retro</option>
-                <option value="5">🎵 TikTok 5: Cyber Phonk Beat</option>
-            </select>
-            <button class="btn" id="btn-music-toggle">🔊 Bật Nhạc</button>
-
+            <button class="btn" id="btn-music-toggle">🔊 Tắt Nhạc</button>
             <button class="btn btn-accent" id="btn-hint">💡 Gợi ý</button>
             <button class="btn" id="btn-shuffle">🔀 Đổi hình</button>
             <button class="btn btn-danger" id="btn-restart">🔄 Chơi lại</button>
@@ -403,25 +386,13 @@
 
 <script>
 class SoundController {
-    constructor() {
-        this.ctx = null;
-        this.musicTimer = null;
-        this.isMuted = false;
-        this.currentTrack = 6;
-        this.noteIndex = 0;
-    }
-
+    constructor() { this.ctx = null; }
     initCtx() {
-        if (!this.ctx) {
-            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (this.ctx.state === 'suspended') {
-            this.ctx.resume();
-        }
+        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
     }
-
     playTone(freq, duration, type="sine", volume=0.1) {
-        if (this.isMuted || !this.ctx) return;
+        this.initCtx();
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = type;
@@ -433,7 +404,6 @@ class SoundController {
         osc.start();
         osc.stop(this.ctx.currentTime + duration);
     }
-
     click() { this.playTone(600, 0.05); }
     select() { this.playTone(800, 0.08); }
     match() {
@@ -450,37 +420,10 @@ class SoundController {
         this.playTone(300, 0.2, "square");
         setTimeout(() => this.playTone(200, 0.3, "square"), 200);
     }
-
-    startMusic() {
-        this.initCtx();
-        if (this.musicTimer) clearInterval(this.musicTimer);
-        this.noteIndex = 0;
-        
-        const tracks = {
-            1: { bpm: 280, wave: "triangle", notes: [261.6, 329.6, 392, 523.2, 392, 329.6, 293.7, 349.2, 440, 587.3, 440, 349.2] },
-            2: { bpm: 140, wave: "square",   notes: [523.2, 587.3, 659.3, 783.9, 659.3, 587.3, 523.2, 392, 440, 523.2, 659.3, 523.2] },
-            3: { bpm: 160, wave: "sine",     notes: [329.6, 392, 440, 523.2, 440, 392, 329.6, 293.7, 329.6, 392, 440, 392] },
-            4: { bpm: 200, wave: "sawtooth", notes: [440, 554.3, 659.3, 880, 659.3, 554.3, 440, 330, 440, 554.3, 659.3, 554.3] },
-            5: { bpm: 130, wave: "sawtooth", notes: [174.6, 196, 220, 261.6, 220, 196, 174.6, 146.8, 174.6, 196, 220, 196] },
-            // Track 6: "Sao Mình Chưa Nắm Tay Nhau" (Young Tachi Drill Remix Version)
-            6: { bpm: 140, wave: "sawtooth", notes: [349.23, 392, 440, 349.23, 392, 440, 523.25, 440, 392, 349.23, 329.63, 293.66, 349.23, 392, 440, 523.25, 587.33, 523.25, 440, 392] }
-        };
-
-        const current = tracks[this.currentTrack];
-        this.musicTimer = setInterval(() => {
-            if (!this.isMuted) {
-                const note = current.notes[this.noteIndex % current.notes.length];
-                this.playTone(note, 0.12, current.wave, 0.04);
-                this.noteIndex++;
-            }
-        }, current.bpm);
-    }
-
-    stopMusic() {
-        if (this.musicTimer) clearInterval(this.musicTimer);
-    }
 }
 const audio = new SoundController();
+const bgMusic = document.getElementById('bg-music');
+bgMusic.volume = 0.6;
 
 const ANIMAL_DATA = [
     { bg: '#78350f', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#d97706"/><circle cx="35" cy="42" r="5" fill="#000"/><circle cx="65" cy="42" r="5" fill="#000"/><ellipse cx="50" cy="62" rx="14" ry="9" fill="#fff"/><circle cx="50" cy="57" r="5" fill="#000"/><path d="M 20 20 Q 35 15 35 35 Z" fill="#78350f"/><path d="M 80 20 Q 65 15 65 35 Z" fill="#78350f"/></svg>` },
@@ -499,7 +442,7 @@ const ANIMAL_DATA = [
     { bg: '#701a75', svg: `<svg viewBox="0 0 100 100"><ellipse cx="32" cy="25" rx="8" ry="22" fill="#f472b6"/><ellipse cx="68" cy="25" rx="8" ry="22" fill="#f472b6"/><circle cx="50" cy="58" r="34" fill="#fff"/><circle cx="38" cy="50" r="4" fill="#000"/><circle cx="62" cy="50" r="4" fill="#000"/><polygon points="50,60 45,65 55,65" fill="#f43f5e"/></svg>` },
     { bg: '#164e63', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="55" r="35" fill="#e2e8f0"/><path d="M 20 25 Q 30 35 35 45" stroke="#000" stroke-width="6" fill="none"/><path d="M 80 25 Q 70 35 65 45" stroke="#000" stroke-width="6" fill="none"/><circle cx="38" cy="45" r="4" fill="#000"/><circle cx="62" cy="45" r="4" fill="#000"/><ellipse cx="50" cy="65" rx="18" ry="12" fill="#fbcfe8"/><circle cx="43" cy="65" r="3" fill="#000"/><circle cx="57" cy="65" r="3" fill="#000"/></svg>` },
     { bg: '#0284c7', svg: `<svg viewBox="0 0 100 100"><ellipse cx="45" cy="50" rx="30" ry="25" fill="#38bdf8"/><polygon points="70,50 90,30 90,70" fill="#0284c7"/><circle cx="30" cy="45" r="4" fill="#000"/><path d="M 40 60 Q 50 65 60 60" stroke="#000" stroke-width="2" fill="none"/></svg>` },
-    { bg: '#581c87', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="42" r="32" fill="#c084fc"/><circle cx="38" cy="40" r="5" fill="#fff"/><circle cx="62" cy="40" r="5" fill="#fff"/><circle cx="38" cy="40" r="2" fill="#000"/><circle cx="62" cy="40" r="2" fill="#000"/><path d="M 20 70 Q 25 85 30 70 Q 35 85 40 70 Q 45 85 50 70 Q 55 85 60 70 Q 65 85 70 70 Q 75 85 80 70" stroke="#c084fc" stroke-width="6" fill="none"/></svg>` },
+    { bg: '#581c87', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="42" r="32" fill="#c084fc"/><circle cx="38" cy="40" r="5" fill="#fff"/><circle cx="62" cy="40" r="5" fill="#fff"/><circle cx="38" cy="40" r="2" fill="#000"/><circle cx="62" cy="40" r="2" fill="#000"/><path d="M 20 70 Q 25 85 30 70 Q 35 85 40 70 Q 45 85 50 70 Q 55 85 70 70 Q 75 85 80 70" stroke="#c084fc" stroke-width="6" fill="none"/></svg>` },
     { bg: '#713f12', svg: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="30" ry="22" fill="#facc15"/><line x1="40" y1="28" x2="40" y2="72" stroke="#000" stroke-width="6"/><line x1="55" y1="28" x2="55" y2="72" stroke="#000" stroke-width="6"/><circle cx="30" cy="45" r="3" fill="#000"/><ellipse cx="45" cy="22" rx="12" ry="8" fill="#e0f2fe"/><ellipse cx="60" cy="22" rx="12" ry="8" fill="#e0f2fe"/></svg>` },
     { bg: '#4c1d95', svg: `<svg viewBox="0 0 100 100"><ellipse cx="30" cy="35" rx="18" ry="14" fill="#f472b6"/><ellipse cx="70" cy="35" rx="18" ry="14" fill="#f472b6"/><ellipse cx="32" cy="60" rx="14" ry="10" fill="#fb7185"/><ellipse cx="68" cy="60" rx="14" ry="10" fill="#fb7185"/><ellipse cx="50" cy="50" rx="5" ry="25" fill="#000"/></svg>` },
     { bg: '#0369a1', svg: `<svg viewBox="0 0 100 100"><path d="M 10 40 Q 50 10 90 40 Q 50 45 10 40 Z" fill="#0284c7"/><circle cx="50" cy="45" r="12" fill="#0284c7"/><polygon points="50,55 45,75 55,75" fill="#0284c7"/><circle cx="46" cy="42" r="2" fill="#fff"/><circle cx="54" cy="42" r="2" fill="#fff"/></svg>` },
@@ -530,24 +473,23 @@ const levelTxt = document.getElementById('level-txt');
 const scoreTxt = document.getElementById('score-txt');
 const hintTxt = document.getElementById('hint-txt');
 const shuffleTxt = document.getElementById('shuffle-txt');
+const btnMusicToggle = document.getElementById('btn-music-toggle');
 
 document.getElementById('btn-start').addEventListener('click', () => {
     document.getElementById('start-screen').classList.add('hidden');
-    audio.startMusic();
+    bgMusic.play().catch(e => console.log("Cần tương tác người dùng"));
+    btnMusicToggle.textContent = "🔊 Tắt Nhạc";
     initGame();
 });
 
-const musicSelect = document.getElementById('music-select');
-const btnMusicToggle = document.getElementById('btn-music-toggle');
-
-musicSelect.addEventListener('change', (e) => {
-    audio.currentTrack = parseInt(e.target.value);
-    audio.startMusic();
-});
-
 btnMusicToggle.addEventListener('click', () => {
-    audio.isMuted = !audio.isMuted;
-    btnMusicToggle.textContent = audio.isMuted ? "🔇 Tắt Nhạc" : "🔊 Bật Nhạc";
+    if (bgMusic.paused) {
+        bgMusic.play();
+        btnMusicToggle.textContent = "🔊 Tắt Nhạc";
+    } else {
+        bgMusic.pause();
+        btnMusicToggle.textContent = "🔇 Bật Nhạc";
+    }
 });
 
 function initGame() {
