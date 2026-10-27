@@ -322,14 +322,14 @@
 </head>
 <body>
 
-<!-- CHỈ ĐỊNH FILE NHẠC PHÁT TỰ ĐỘNG KHI VÀO GAME -->
+<!-- FILE NHẠC NỀN MP3 GỐC -->
 <audio id="bg-music" loop preload="auto">
     <source src="nhac.mp3" type="audio/mpeg">
 </audio>
 
 <div class="start-screen" id="start-screen">
     <div class="start-title">🐾 ONET ANIMALS 🐾</div>
-    <div class="start-subtitle">Sao Mình Chưa Nắm Tay Nhau (Jerk Drill Remix)</div>
+    <div class="start-subtitle">Sao Mình Chưa Nắm Tay Nhau (Remix Edition)</div>
     <button class="btn-start-game" id="btn-start">▶ VÀO GAME</button>
 </div>
 
@@ -423,8 +423,9 @@ class SoundController {
 }
 const audio = new SoundController();
 const bgMusic = document.getElementById('bg-music');
-bgMusic.volume = 0.6;
+bgMusic.volume = 0.7;
 
+// 24 LOÀI ĐỘNG VẬT NGOÀI ĐỜI THẬT
 const ANIMAL_DATA = [
     { bg: '#78350f', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#d97706"/><circle cx="35" cy="42" r="5" fill="#000"/><circle cx="65" cy="42" r="5" fill="#000"/><ellipse cx="50" cy="62" rx="14" ry="9" fill="#fff"/><circle cx="50" cy="57" r="5" fill="#000"/><path d="M 20 20 Q 35 15 35 35 Z" fill="#78350f"/><path d="M 80 20 Q 65 15 65 35 Z" fill="#78350f"/></svg>` },
     { bg: '#451a03', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#f97316"/><polygon points="15,15 40,25 25,45" fill="#ea580c"/><polygon points="85,15 60,25 75,45" fill="#ea580c"/><circle cx="35" cy="45" r="5" fill="#22c55e"/><circle cx="65" cy="45" r="5" fill="#22c55e"/><polygon points="50,55 45,60 55,60" fill="#ef4444"/><line x1="15" y1="55" x2="35" y2="57" stroke="#000" stroke-width="2"/><line x1="85" y1="55" x2="65" y2="57" stroke="#000" stroke-width="2"/></svg>` },
@@ -442,7 +443,7 @@ const ANIMAL_DATA = [
     { bg: '#701a75', svg: `<svg viewBox="0 0 100 100"><ellipse cx="32" cy="25" rx="8" ry="22" fill="#f472b6"/><ellipse cx="68" cy="25" rx="8" ry="22" fill="#f472b6"/><circle cx="50" cy="58" r="34" fill="#fff"/><circle cx="38" cy="50" r="4" fill="#000"/><circle cx="62" cy="50" r="4" fill="#000"/><polygon points="50,60 45,65 55,65" fill="#f43f5e"/></svg>` },
     { bg: '#164e63', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="55" r="35" fill="#e2e8f0"/><path d="M 20 25 Q 30 35 35 45" stroke="#000" stroke-width="6" fill="none"/><path d="M 80 25 Q 70 35 65 45" stroke="#000" stroke-width="6" fill="none"/><circle cx="38" cy="45" r="4" fill="#000"/><circle cx="62" cy="45" r="4" fill="#000"/><ellipse cx="50" cy="65" rx="18" ry="12" fill="#fbcfe8"/><circle cx="43" cy="65" r="3" fill="#000"/><circle cx="57" cy="65" r="3" fill="#000"/></svg>` },
     { bg: '#0284c7', svg: `<svg viewBox="0 0 100 100"><ellipse cx="45" cy="50" rx="30" ry="25" fill="#38bdf8"/><polygon points="70,50 90,30 90,70" fill="#0284c7"/><circle cx="30" cy="45" r="4" fill="#000"/><path d="M 40 60 Q 50 65 60 60" stroke="#000" stroke-width="2" fill="none"/></svg>` },
-    { bg: '#581c87', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="42" r="32" fill="#c084fc"/><circle cx="38" cy="40" r="5" fill="#fff"/><circle cx="62" cy="40" r="5" fill="#fff"/><circle cx="38" cy="40" r="2" fill="#000"/><circle cx="62" cy="40" r="2" fill="#000"/><path d="M 20 70 Q 25 85 30 70 Q 35 85 40 70 Q 45 85 50 70 Q 55 85 70 70 Q 75 85 80 70" stroke="#c084fc" stroke-width="6" fill="none"/></svg>` },
+    { bg: '#581c87', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="42" r="32" fill="#c084fc"/><circle cx="38" cy="40" r="5" fill="#fff"/><circle cx="62" cy="40" r="5" fill="#fff"/><circle cx="38" cy="40" r="2" fill="#000"/><circle cx="62" cy="40" r="2" fill="#000"/><path d="M 20 70 Q 25 85 30 70 Q 35 85 40 70 Q 45 85 50 70 Q 55 85 60 70 Q 65 85 70 70 Q 75 85 80 70" stroke="#c084fc" stroke-width="6" fill="none"/></svg>` },
     { bg: '#713f12', svg: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="30" ry="22" fill="#facc15"/><line x1="40" y1="28" x2="40" y2="72" stroke="#000" stroke-width="6"/><line x1="55" y1="28" x2="55" y2="72" stroke="#000" stroke-width="6"/><circle cx="30" cy="45" r="3" fill="#000"/><ellipse cx="45" cy="22" rx="12" ry="8" fill="#e0f2fe"/><ellipse cx="60" cy="22" rx="12" ry="8" fill="#e0f2fe"/></svg>` },
     { bg: '#4c1d95', svg: `<svg viewBox="0 0 100 100"><ellipse cx="30" cy="35" rx="18" ry="14" fill="#f472b6"/><ellipse cx="70" cy="35" rx="18" ry="14" fill="#f472b6"/><ellipse cx="32" cy="60" rx="14" ry="10" fill="#fb7185"/><ellipse cx="68" cy="60" rx="14" ry="10" fill="#fb7185"/><ellipse cx="50" cy="50" rx="5" ry="25" fill="#000"/></svg>` },
     { bg: '#0369a1', svg: `<svg viewBox="0 0 100 100"><path d="M 10 40 Q 50 10 90 40 Q 50 45 10 40 Z" fill="#0284c7"/><circle cx="50" cy="45" r="12" fill="#0284c7"/><polygon points="50,55 45,75 55,75" fill="#0284c7"/><circle cx="46" cy="42" r="2" fill="#fff"/><circle cx="54" cy="42" r="2" fill="#fff"/></svg>` },
@@ -474,18 +475,26 @@ const scoreTxt = document.getElementById('score-txt');
 const hintTxt = document.getElementById('hint-txt');
 const shuffleTxt = document.getElementById('shuffle-txt');
 const btnMusicToggle = document.getElementById('btn-music-toggle');
+const btnStart = document.getElementById('btn-start');
 
-document.getElementById('btn-start').addEventListener('click', () => {
+// XỬ LÝ SỰ KIỆN BẤM VÀO GAME & PHÁT NHẠC
+btnStart.addEventListener('click', () => {
     document.getElementById('start-screen').classList.add('hidden');
-    bgMusic.play().catch(e => console.log("Cần tương tác người dùng"));
-    btnMusicToggle.textContent = "🔊 Tắt Nhạc";
+    bgMusic.load();
+    bgMusic.play().then(() => {
+        btnMusicToggle.textContent = "🔊 Tắt Nhạc";
+    }).catch(e => {
+        console.log("Trình duyệt chặn autoplay:", e);
+        btnMusicToggle.textContent = "🔇 Bật Nhạc";
+    });
     initGame();
 });
 
 btnMusicToggle.addEventListener('click', () => {
     if (bgMusic.paused) {
-        bgMusic.play();
-        btnMusicToggle.textContent = "🔊 Tắt Nhạc";
+        bgMusic.play().then(() => {
+            btnMusicToggle.textContent = "🔊 Tắt Nhạc";
+        }).catch(err => alert("Chưa tìm thấy file nhac.mp3 cùng thư mục!"));
     } else {
         bgMusic.pause();
         btnMusicToggle.textContent = "🔇 Bật Nhạc";
